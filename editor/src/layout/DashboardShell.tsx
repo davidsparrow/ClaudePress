@@ -7,6 +7,7 @@ import Sidebar from './Sidebar';
 import OverviewPage from '../pages/OverviewPage';
 import PagesPage from '../pages/PagesPage';
 import FormsPage from '../pages/FormsPage';
+import MediaPage from '../pages/MediaPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
 import SettingsPage from '../pages/SettingsPage';
 import AdminPage from '../pages/admin/AdminPage';
@@ -177,12 +178,7 @@ export default function DashboardShell({ onLogout }: Props) {
       case 'pages':
         return <PagesPage siteId={selectedSiteId} />;
       case 'media':
-        return (
-          <PlaceholderPage
-            title="Media"
-            description="Guarded Media — browse imported assets (Phase 8)."
-          />
-        );
+        return <MediaPage siteId={selectedSiteId} />;
       case 'forms':
         return (
           <FormsPage siteId={selectedSiteId} siteName={selectedSite?.name ?? 'Site'} />

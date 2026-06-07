@@ -32,6 +32,17 @@ export interface ImportJob {
   updatedAt: string;
 }
 
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  publicPath: string;
+  relativePath: string;
+  mimeType?: string;
+  sourceUrl?: string;
+  wpPostId?: number;
+  createdAt: string;
+}
+
 const TOKEN_KEY = 'presspal_token';
 const LEGACY_TOKEN_KEY = 'claudepress_token';
 
@@ -225,4 +236,5 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ to, agencyName }),
     }),
+  listMedia: (siteId: string) => request<MediaAsset[]>(`/sites/${siteId}/media`),
 };
