@@ -1,0 +1,77 @@
+## What you’re building (Build prompts bekow)
+
+A CMS that lets your **clients edit their own website** — by clicking text or chatting in plain English — without ever touching code or breaking the design.
+
+You build a site, *ingest* it into the system, hand the client a password, and they self-serve from then on. Every change is version-controlled and publishes straight to their live domain.
+
+- **Sell sites you never have to maintain** — the client does their own edits.
+- **They can’t break it** — the design is locked; only content changes.
+- **Recurring revenue** — charge monthly for the self-serve editor + hosting.
+- **Scales** — one dashboard, unlimited client sites.
+
+—
+
+## How the system works
+
+!How the system works
+
+How the system works
+
+1. **Build a site** — any site you’ve made.
+2. **Ingest it** — the system fetches the page, makes every piece of text and every image editable, and locks the layout.
+3. **Edit it** — click any element and type, or ask for a change in plain English.
+4. **Hand it off** — set a password, send the client a link. They edit only their own site.
+5. **Publish** — it renders a static version and pushes it live to the client’s domain.
+
+### The two-layer model
+
+- **Layer 1 — the dashboard.** One app you host *once*. Every website you manage lives inside it.
+- **Layer 2 — the client sites.** Each is a separate live site on its own domain. The dashboard pushes updates to them.
+
+—
+
+## The 9 parts your agent will build
+
+What you’re building
+
+Theme fonts, styling colors etc in this Repo: https://github.com/davidsparrow/fiveup
+
+1. **Ingest engine** — fetch a page’s HTML, parse it, and tag every text / image / button / link as an editable *content slot* with a stable ID. Everything else becomes a frozen template.
+2. **Frozen template + content slots** — separate the design (locked) from the content (editable). The template holds placeholders; the content is just values. Only the values can change.
+3. **The Guardian** *(the secret sauce)* — a deterministic validator — plain code, no AI — that checks every change before it’s allowed and rejects anything malformed or that would delete a section. This is *why* clients can’t break the design.
+4. **Editor overlay** — an in-browser UI: hover → click → type on any slot, plus a chat box. The preview re-renders live from template + content.
+5. **Storage** — where sites, versions, passwords and form submissions live. Start on the filesystem; graduate to a document database like MongoDB.
+6. **Publish pipeline** — render the template + current content into a static page, then deploy it (e.g. via the Vercel API). Keep every publish as an immutable snapshot for one-click rollback.
+7. Provide if possible and sensible, a place for users to add React Resend Email, I think they will need their own account: https://github.com/resend/react-email.
+8. Add button(s) to view/copy the SEO Prompts from the following Repo - duplicate them into our codebase so you can show them in UI where it makes sense for copying with copy icon:https://github.com/davidsparrow/Headcheck
+9. Add a button to allow Users to ‘download’ the Site as Custom PHP WordPress Theme with WordPress Install Instructions and ideas on how to reproduce Animation Effects outside of react on WordPress - plugins and/or CSS?
+
+> **The one rule that makes it safe:** the AI never writes code. It only proposes *content* changes against the frozen template — and the Guardian validates every single one. That principle is what lets you hand the keys to a non-technical client.
+> 
+
+—
+
+## Hand this prompt to your AI agent
+
+Paste this into Claude Code (or your agent of choice) to start building:
+
+```
+//BEGIN BUILD PROMPT
+
+Build me an AI-native client CMS as a Node + Express app.
+
+- INGEST: given a URL, fetch the HTML, parse it, and auto-tag every text / image / button / link as an editable content slot with a stable id. Everything else becomes a frozen, non-editable template.
+- CONTENT MODEL: separate design from content — the template is locked; only slot values can change.
+- THE GUARDIAN: a deterministic function (no AI) validates every proposed change before applying it — reject anything malformed or that removes/empties a structural section.
+- EDITOR: an in-browser UI — click any slot to edit inline, plus a chat box. Live-preview by re-rendering template + content.
+- AI CHAT (optional): turn a plain-English request into a structured slot change, then run it through the Guardian. Support Anthropic and OpenRouter keys.
+- STORAGE: start on the filesystem; allow MongoDB via a connection string.
+- MULTI-SITE: manage many sites, each multi-page, each with versions + one-click rollback.
+- AUTH: one owner master key; per-site client passwords (a client login only opens its own site).
+- PUBLISH: render the current content into a static bundle and deploy it to the site’s host (e.g. the Vercel REST API). Keep every publish as an immutable snapshot.
+
+Start with the ingest + frozen-template content model and the Guardian, then the editor, then publish.
+
+// END BUILD PROMPT
+
+—
