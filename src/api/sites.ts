@@ -11,6 +11,28 @@ import {
   hashPassword,
 } from '../auth/middleware.js';
 import type { SlotChange } from '../content/types.js';
+import type { Site } from '../storage/types.js';
+import { routeParam } from '../util/params.js';
+
+function sanitizeSite(site: Site): Site {
+  const { clientPasswordHash: _, email, ...metaRest } = site.meta;
+  return {
+    ...site,
+    meta: {
+      ...metaRest,
+      ...(email
+        ? {
+            email: {
+              enabled: email.enabled,
+              fromEmail: email.fromEmail,
+              fromName: email.fromName,
+              notifyEmail: email.notifyEmail,
+            },
+          }
+        : {}),
+    },
+  };
+}
 
 const router = Router();
 
@@ -45,18 +67,18 @@ router.post('/sites', requireOwner, async (req, res) => {
 
 router.get('/sites/:siteId', siteAuth, async (req, res) => {
   const storage = await getStorage();
-  const site = await storage.getSite(req.params.siteId);
+  const site = await storage.getSite(routeParam(req.params.siteId));
   if (!site) {
     res.status(404).json({ error: 'Site not found' });
     return;
   }
-  res.json(site);
+  res.json(sanitizeSite(site));
 });
 
 router.patch('/sites/:siteId', requireOwner, async (req, res) => {
   try {
     const storage = await getStorage();
-    const meta = await storage.updateSiteMeta(req.params.siteId, req.body);
+    const meta = await storage.updateSiteMeta(routeParam(req.params.siteId), req.body);
     res.json(meta);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Update failed' });
@@ -65,7 +87,7 @@ router.patch('/sites/:siteId', requireOwner, async (req, res) => {
 
 router.delete('/sites/:siteId', requireOwner, async (req, res) => {
   const storage = await getStorage();
-  await storage.deleteSite(req.params.siteId);
+  await storage.deleteSite(routeParam(req.params.siteId));
   res.status(204).send();
 });
 
@@ -77,7 +99,7 @@ router.post('/sites/:siteId/password', requireOwner, async (req, res) => {
       return;
     }
     const storage = await getStorage();
-    await storage.setClientPassword(req.params.siteId, hashPassword(password));
+    await storage.setClientPassword(routeParam(req.params.siteId), hashPassword(password));
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Failed to set password' });
@@ -88,13 +110,13 @@ router.post('/sites/:siteId/password', requireOwner, async (req, res) => {
 
 router.get('/sites/:siteId/pages', siteAuth, async (req, res) => {
   const storage = await getStorage();
-  const pages = await storage.listPages(req.params.siteId);
+  const pages = await storage.listPages(routeParam(req.params.siteId));
   res.json(pages);
 });
 
 router.get('/sites/:siteId/pages/:pageId', siteAuth, async (req, res) => {
   const storage = await getStorage();
-  const page = await storage.getPage(req.params.siteId, req.params.pageId);
+  const page = await storage.getPage(routeParam(req.params.siteId), routeParam(req.params.pageId));
   if (!page) {
     res.status(404).json({ error: 'Page not found' });
     return;
@@ -111,7 +133,7 @@ router.post('/sites/:siteId/pages/ingest', siteAuth, ownerOnly, async (req, res)
     }
     const result = await ingestUrl(url);
     const storage = await getStorage();
-    const page = await storage.upsertPage(req.params.siteId, {
+    const page = await storage.upsertPage(routeParam(req.params.siteId), {
       id: nanoid(10),
       path: result.pagePath,
       title: result.title,
@@ -132,7 +154,7 @@ router.patch('/sites/:siteId/pages/:pageId', siteAuth, async (req, res) => {
       return;
     }
     const storage = await getStorage();
-    const page = await storage.getPage(req.params.siteId, req.params.pageId);
+    const page = await storage.getPage(routeParam(req.params.siteId), routeParam(req.params.pageId));
     if (!page) {
       res.status(404).json({ error: 'Page not found' });
       return;
@@ -145,7 +167,7 @@ router.patch('/sites/:siteId/pages/:pageId', siteAuth, async (req, res) => {
     }
 
     const updatedContent = mergeValidatedSlots(page.content, result.applied!);
-    const saved = await storage.upsertPage(req.params.siteId, {
+    const saved = await storage.upsertPage(routeParam(req.params.siteId), {
       ...page,
       content: updatedContent,
     });
@@ -158,7 +180,7 @@ router.patch('/sites/:siteId/pages/:pageId', siteAuth, async (req, res) => {
 
 router.get('/sites/:siteId/pages/:pageId/preview', siteAuth, async (req, res) => {
   const storage = await getStorage();
-  const page = await storage.getPage(req.params.siteId, req.params.pageId);
+  const page = await storage.getPage(routeParam(req.params.siteId), routeParam(req.params.pageId));
   if (!page) {
     res.status(404).json({ error: 'Page not found' });
     return;
@@ -168,7 +190,7 @@ router.get('/sites/:siteId/pages/:pageId/preview', siteAuth, async (req, res) =>
 
 router.delete('/sites/:siteId/pages/:pageId', requireOwner, async (req, res) => {
   const storage = await getStorage();
-  await storage.deletePage(req.params.siteId, req.params.pageId);
+  await storage.deletePage(routeParam(req.params.siteId), routeParam(req.params.pageId));
   res.status(204).send();
 });
 
@@ -176,7 +198,7 @@ router.delete('/sites/:siteId/pages/:pageId', requireOwner, async (req, res) => 
 
 router.get('/sites/:siteId/versions', siteAuth, async (req, res) => {
   const storage = await getStorage();
-  const versions = await storage.listVersions(req.params.siteId);
+  const versions = await storage.listVersions(routeParam(req.params.siteId));
   res.json(versions);
 });
 
@@ -185,7 +207,7 @@ router.post('/sites/:siteId/versions', siteAuth, async (req, res) => {
     const { label } = req.body as { label?: string };
     const storage = await getStorage();
     const version = await storage.createVersion(
-      req.params.siteId,
+      routeParam(req.params.siteId),
       label ?? `Snapshot ${new Date().toISOString()}`
     );
     res.status(201).json(version);
@@ -197,7 +219,7 @@ router.post('/sites/:siteId/versions', siteAuth, async (req, res) => {
 router.post('/sites/:siteId/versions/:versionId/restore', siteAuth, async (req, res) => {
   try {
     const storage = await getStorage();
-    const site = await storage.restoreVersion(req.params.siteId, req.params.versionId);
+    const site = await storage.restoreVersion(routeParam(req.params.siteId), routeParam(req.params.versionId));
     res.json(site);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Restore failed' });

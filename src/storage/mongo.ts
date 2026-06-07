@@ -6,6 +6,7 @@ import type {
   SiteMeta,
   SitePage,
   SiteVersion,
+  FormSubmission,
 } from './types.js';
 
 /** MongoDB storage — activated when MONGODB_URI is set */
@@ -45,7 +46,7 @@ export class MongoStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email'>>
   ): Promise<SiteMeta> {
     const db = await this.db();
     const updatedAt = new Date().toISOString();
@@ -67,6 +68,7 @@ export class MongoStorage implements StorageAdapter {
     await db.collection<SiteMeta>('sites').deleteOne({ id: siteId });
     await db.collection<SitePage>('pages').deleteMany({ siteId });
     await db.collection<SiteVersion>('versions').deleteMany({ siteId });
+    await db.collection<FormSubmission>('submissions').deleteMany({ siteId });
   }
 
   async listPages(siteId: string): Promise<SitePage[]> {
@@ -146,5 +148,30 @@ export class MongoStorage implements StorageAdapter {
     }
 
     return (await this.getSite(siteId))!;
+  }
+
+  async listSubmissions(siteId: string): Promise<FormSubmission[]> {
+    const db = await this.db();
+    return db.collection<FormSubmission>('submissions').find({ siteId }).sort({ createdAt: -1 }).toArray();
+  }
+
+  async addSubmission(
+    siteId: string,
+    submission: Omit<FormSubmission, 'id' | 'siteId' | 'createdAt'>
+  ): Promise<FormSubmission> {
+    const db = await this.db();
+    const saved: FormSubmission = {
+      ...submission,
+      id: nanoid(10),
+      siteId,
+      createdAt: new Date().toISOString(),
+    };
+    await db.collection<FormSubmission>('submissions').insertOne(saved);
+    return saved;
+  }
+
+  async getSubmission(siteId: string, submissionId: string): Promise<FormSubmission | null> {
+    const db = await this.db();
+    return db.collection<FormSubmission>('submissions').findOne({ siteId, id: submissionId });
   }
 }

@@ -4,6 +4,7 @@ import { proposeChanges } from '../ai/chat.js';
 import { validateChanges, mergeValidatedSlots } from '../guardian/validate.js';
 import { renderPage } from '../content/render.js';
 import { requireSiteAccess } from '../auth/middleware.js';
+import { routeParam } from '../util/params.js';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.post('/sites/:siteId/pages/:pageId/chat', siteAuth, async (req, res) => {
     }
 
     const storage = await getStorage();
-    const page = await storage.getPage(req.params.siteId, req.params.pageId);
+    const page = await storage.getPage(routeParam(req.params.siteId), routeParam(req.params.pageId));
     if (!page) {
       res.status(404).json({ error: 'Page not found' });
       return;
@@ -48,7 +49,7 @@ router.post('/sites/:siteId/pages/:pageId/chat', siteAuth, async (req, res) => {
     }
 
     const updatedContent = mergeValidatedSlots(page.content, guardian.applied!);
-    const saved = await storage.upsertPage(req.params.siteId, {
+    const saved = await storage.upsertPage(routeParam(req.params.siteId), {
       ...page,
       content: updatedContent,
     });
@@ -76,7 +77,7 @@ router.post('/sites/:siteId/pages/:pageId/chat/preview', siteAuth, async (req, r
     }
 
     const storage = await getStorage();
-    const page = await storage.getPage(req.params.siteId, req.params.pageId);
+    const page = await storage.getPage(routeParam(req.params.siteId), routeParam(req.params.pageId));
     if (!page) {
       res.status(404).json({ error: 'Page not found' });
       return;

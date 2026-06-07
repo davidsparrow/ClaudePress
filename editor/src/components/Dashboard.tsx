@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type SiteMeta } from '../api';
 import SeoPromptsPanel from './SeoPromptsPanel';
+import EmailSettingsPanel from './EmailSettingsPanel';
 
 interface Props {
   onOpenSite: (siteId: string) => void;
@@ -16,6 +17,7 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showSeo, setShowSeo] = useState(false);
+  const [emailSite, setEmailSite] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     api
@@ -118,14 +120,30 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
         ) : (
           <div className="site-grid">
             {sites.map((site) => (
-              <div key={site.id} className="site-card" onClick={() => onOpenSite(site.id)}>
-                <div style={{ flex: 1 }}>
+              <div key={site.id} className="site-card">
+                <div style={{ flex: 1 }} onClick={() => onOpenSite(site.id)}>
                   <strong>{site.name}</strong>
                   {site.domain && (
                     <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{site.domain}</div>
                   )}
                 </div>
-                <code style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{site.id}</code>
+                <button
+                  type="button"
+                  className="secondary"
+                  style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEmailSite({ id: site.id, name: site.name });
+                  }}
+                >
+                  Email
+                </button>
+                <code
+                  style={{ fontSize: '0.75rem', color: 'var(--muted)', cursor: 'pointer' }}
+                  onClick={() => onOpenSite(site.id)}
+                >
+                  {site.id}
+                </code>
               </div>
             ))}
           </div>
@@ -136,6 +154,17 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
         <div className="seo-modal-backdrop" onClick={() => setShowSeo(false)}>
           <div className="seo-modal" onClick={(e) => e.stopPropagation()}>
             <SeoPromptsPanel onClose={() => setShowSeo(false)} />
+          </div>
+        </div>
+      )}
+      {emailSite && (
+        <div className="seo-modal-backdrop" onClick={() => setEmailSite(null)}>
+          <div className="seo-modal" onClick={(e) => e.stopPropagation()}>
+            <EmailSettingsPanel
+              siteId={emailSite.id}
+              siteName={emailSite.name}
+              onClose={() => setEmailSite(null)}
+            />
           </div>
         </div>
       )}

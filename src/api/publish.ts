@@ -8,6 +8,7 @@ import {
   updatePublishRecord,
 } from '../publish/index.js';
 import { requireSiteAccess, ownerOnly } from '../auth/middleware.js';
+import { routeParam } from '../util/params.js';
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
   try {
     const { label, deploy } = req.body as { label?: string; deploy?: boolean };
     const storage = await getStorage();
-    const site = await storage.getSite(req.params.siteId);
+    const site = await storage.getSite(routeParam(req.params.siteId));
     if (!site) {
       res.status(404).json({ error: 'Site not found' });
       return;
@@ -33,13 +34,13 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
     }
 
     const bundle = await savePublishBundle(
-      req.params.siteId,
+      routeParam(req.params.siteId),
       site.pages,
       label ?? `Publish ${new Date().toISOString()}`
     );
 
     // Auto-snapshot before publish
-    await storage.createVersion(req.params.siteId, `Pre-publish ${bundle.record.id}`);
+    await storage.createVersion(routeParam(req.params.siteId), `Pre-publish ${bundle.record.id}`);
 
     let deploymentUrl: string | undefined;
     let vercelDeploymentId: string | undefined;
@@ -69,12 +70,12 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
 });
 
 router.get('/sites/:siteId/publishes', siteAuth, async (req, res) => {
-  const publishes = await listPublishes(req.params.siteId);
+  const publishes = await listPublishes(routeParam(req.params.siteId));
   res.json(publishes);
 });
 
 router.get('/sites/:siteId/publishes/:publishId', siteAuth, async (req, res) => {
-  const bundle = await getPublishBundle(req.params.siteId, req.params.publishId);
+  const bundle = await getPublishBundle(routeParam(req.params.siteId), routeParam(req.params.publishId));
   if (!bundle) {
     res.status(404).json({ error: 'Publish not found' });
     return;
@@ -84,7 +85,7 @@ router.get('/sites/:siteId/publishes/:publishId', siteAuth, async (req, res) => 
 
 /** Serve a published page locally (for preview before DNS) */
 router.get('/sites/:siteId/publishes/:publishId/preview/*', siteAuth, async (req, res) => {
-  const bundle = await getPublishBundle(req.params.siteId, req.params.publishId);
+  const bundle = await getPublishBundle(routeParam(req.params.siteId), routeParam(req.params.publishId));
   if (!bundle) {
     res.status(404).json({ error: 'Publish not found' });
     return;
@@ -101,14 +102,14 @@ router.get('/sites/:siteId/publishes/:publishId/preview/*', siteAuth, async (req
 /** Roll back site content from a publish snapshot */
 router.post('/sites/:siteId/publishes/:publishId/rollback', siteAuth, ownerOnly, async (req, res) => {
   try {
-    const bundle = await getPublishBundle(req.params.siteId, req.params.publishId);
+    const bundle = await getPublishBundle(routeParam(req.params.siteId), routeParam(req.params.publishId));
     if (!bundle) {
       res.status(404).json({ error: 'Publish not found' });
       return;
     }
 
     const storage = await getStorage();
-    const site = await storage.getSite(req.params.siteId);
+    const site = await storage.getSite(routeParam(req.params.siteId));
     if (!site) {
       res.status(404).json({ error: 'Site not found' });
       return;

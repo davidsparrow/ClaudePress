@@ -126,7 +126,7 @@ function isValidHref(href: string): boolean {
 /** Ensure no template slot loses its content or disappears */
 function validateStructuralIntegrity(before: PageContent, after: PageContent): string[] {
   const errors: string[] = [];
-  const templateIds = extractTemplateSlotIds(before.template);
+  const templateIds = extractTemplateSlotIds(before);
 
   for (const id of templateIds) {
     const prev = before.slots[id];

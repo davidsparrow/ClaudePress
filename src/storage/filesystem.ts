@@ -7,6 +7,7 @@ import type {
   SiteMeta,
   SitePage,
   SiteVersion,
+  FormSubmission,
 } from './types.js';
 
 const DEFAULT_DATA_DIR = join(process.cwd(), 'data');
@@ -33,6 +34,10 @@ export class FileSystemStorage implements StorageAdapter {
 
   private versionsDir(siteId: string) {
     return join(this.siteDir(siteId), 'versions');
+  }
+
+  private submissionsDir(siteId: string) {
+    return join(this.siteDir(siteId), 'submissions');
   }
 
   async listSites(): Promise<SiteMeta[]> {
@@ -77,7 +82,7 @@ export class FileSystemStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email'>>
   ): Promise<SiteMeta> {
     const meta = await this.readJson<SiteMeta>(this.metaPath(siteId));
     const updated: SiteMeta = {
@@ -193,6 +198,43 @@ export class FileSystemStorage implements StorageAdapter {
     }
 
     return (await this.getSite(siteId))!;
+  }
+
+  async listSubmissions(siteId: string): Promise<FormSubmission[]> {
+    try {
+      const files = await readdir(this.submissionsDir(siteId));
+      const submissions: FormSubmission[] = [];
+      for (const file of files) {
+        if (!file.endsWith('.json')) continue;
+        submissions.push(await this.readJson<FormSubmission>(join(this.submissionsDir(siteId), file)));
+      }
+      return submissions.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    } catch {
+      return [];
+    }
+  }
+
+  async addSubmission(
+    siteId: string,
+    submission: Omit<FormSubmission, 'id' | 'siteId' | 'createdAt'>
+  ): Promise<FormSubmission> {
+    const saved: FormSubmission = {
+      ...submission,
+      id: nanoid(10),
+      siteId,
+      createdAt: new Date().toISOString(),
+    };
+    await mkdir(this.submissionsDir(siteId), { recursive: true });
+    await this.writeJson(join(this.submissionsDir(siteId), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async getSubmission(siteId: string, submissionId: string): Promise<FormSubmission | null> {
+    try {
+      return await this.readJson<FormSubmission>(join(this.submissionsDir(siteId), `${submissionId}.json`));
+    } catch {
+      return null;
+    }
   }
 
   private async readJson<T>(path: string): Promise<T> {

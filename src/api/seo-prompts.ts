@@ -6,6 +6,7 @@ import {
 } from '../seo-prompts/loader.js';
 import { requireOwner, requireSiteAccess } from '../auth/middleware.js';
 import { getStorage } from '../storage/filesystem.js';
+import { routeParam } from '../util/params.js';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.get('/seo-prompts', requireOwner, async (_req, res) => {
 /** Owner dashboard — get full prompt */
 router.get('/seo-prompts/:promptId', requireOwner, async (req, res) => {
   try {
-    const prompt = await getSeoPrompt(req.params.promptId);
+    const prompt = await getSeoPrompt(routeParam(req.params.promptId));
     if (!prompt) {
       res.status(404).json({ error: 'Prompt not found' });
       return;
@@ -84,14 +85,14 @@ router.get('/sites/:siteId/seo-prompts', siteAuth, async (_req, res) => {
 /** Editor — get prompt with optional site/page URL substitution */
 router.get('/sites/:siteId/seo-prompts/:promptId', siteAuth, async (req, res) => {
   try {
-    const prompt = await getSeoPrompt(req.params.promptId);
+    const prompt = await getSeoPrompt(routeParam(req.params.promptId));
     if (!prompt) {
       res.status(404).json({ error: 'Prompt not found' });
       return;
     }
 
     const pageId = req.query.pageId as string | undefined;
-    const ctx = await resolveSiteContext(req.params.siteId, pageId);
+    const ctx = await resolveSiteContext(routeParam(req.params.siteId), pageId);
     const content = applySiteContext(prompt.content, ctx);
 
     res.json({ ...prompt, content });

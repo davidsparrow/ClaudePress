@@ -9,6 +9,8 @@ import sitesRouter from './api/sites.js';
 import publishRouter from './api/publish.js';
 import chatRouter from './api/chat.js';
 import seoPromptsRouter from './api/seo-prompts.js';
+import emailRouter from './api/email.js';
+import publicRouter from './api/public.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -16,10 +18,13 @@ const PORT = process.env.PORT ?? 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use('/api', sitesRouter);
 app.use('/api', publishRouter);
 app.use('/api', chatRouter);
 app.use('/api', seoPromptsRouter);
+app.use('/api', emailRouter);
+app.use('/api', publicRouter);
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {

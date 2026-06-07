@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Request, Response, NextFunction } from 'express';
+import { routeParam } from '../util/params.js';
 
 export type AuthRole = 'owner' | 'client';
 
@@ -56,7 +57,7 @@ export function requireSiteAccess(
   getPasswordHash: (siteId: string) => Promise<string | undefined>
 ) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const siteId = req.params.siteId;
+    const siteId = routeParam(req.params.siteId);
     const token = extractBearer(req);
 
     if (token && MASTER_KEY && safeCompare(token, MASTER_KEY)) {
