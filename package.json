@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "dev:editor": "npm run dev --prefix editor",
+    "build": "tsc && npm run build --prefix editor",
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest"
