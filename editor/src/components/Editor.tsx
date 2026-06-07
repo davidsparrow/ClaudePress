@@ -6,6 +6,7 @@ import {
   type SlotChange,
   type SiteVersion,
 } from '../api';
+import SeoPromptsPanel from './SeoPromptsPanel';
 
 interface Props {
   siteId: string;
@@ -25,6 +26,7 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
   const [status, setStatus] = useState('');
   const [versions, setVersions] = useState<SiteVersion[]>([]);
   const [chatInput, setChatInput] = useState('');
+  const [showSeo, setShowSeo] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const activePage = site?.pages.find((p) => p.id === activePageId) ?? null;
@@ -161,6 +163,9 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
           Snapshot
         </button>
         <button onClick={publishSite}>Publish</button>
+        <button className="secondary" onClick={() => setShowSeo(true)}>
+          SEO prompts
+        </button>
         <button className="secondary" onClick={onLogout}>
           Sign out
         </button>
@@ -291,6 +296,18 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
           )}
         </main>
       </div>
+
+      {showSeo && (
+        <div className="seo-modal-backdrop" onClick={() => setShowSeo(false)}>
+          <div className="seo-modal" onClick={(e) => e.stopPropagation()}>
+            <SeoPromptsPanel
+              siteId={siteId}
+              pageId={activePageId ?? undefined}
+              onClose={() => setShowSeo(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

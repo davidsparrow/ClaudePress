@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type SiteMeta } from '../api';
+import SeoPromptsPanel from './SeoPromptsPanel';
 
 interface Props {
   onOpenSite: (siteId: string) => void;
@@ -14,6 +15,7 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showSeo, setShowSeo] = useState(false);
 
   useEffect(() => {
     api
@@ -53,6 +55,9 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
       <header className="topbar">
         <h1>ClaudePress Dashboard</h1>
         <div className="spacer" />
+        <button className="secondary" onClick={() => setShowSeo(true)}>
+          SEO prompts
+        </button>
         <button className="secondary" onClick={onLogout}>
           Sign out
         </button>
@@ -126,6 +131,14 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
           </div>
         )}
       </div>
+
+      {showSeo && (
+        <div className="seo-modal-backdrop" onClick={() => setShowSeo(false)}>
+          <div className="seo-modal" onClick={(e) => e.stopPropagation()}>
+            <SeoPromptsPanel onClose={() => setShowSeo(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
