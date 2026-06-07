@@ -17,6 +17,7 @@
   "dependencies": {
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "mongodb": "^6.13.0",
     "nanoid": "^5.1.0",

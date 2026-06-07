@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { setToken, clearToken } from './api';
+import { useEffect, useState } from 'react';
+import { getToken, setToken, clearToken } from './api';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Editor from './components/Editor';
@@ -9,13 +9,38 @@ type View =
   | { kind: 'dashboard' }
   | { kind: 'editor'; siteId: string };
 
+function initialView(): View {
+  const siteId = new URLSearchParams(window.location.search).get('site');
+  if (siteId) return { kind: 'editor', siteId };
+  return { kind: 'login' };
+}
+
 export default function App() {
-  const [view, setView] = useState<View>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const siteId = params.get('site');
-    if (siteId) return { kind: 'editor', siteId };
-    return { kind: 'login' };
-  });
+  const [view, setView] = useState<View>(initialView);
+  const [restoring, setRestoring] = useState(() => getToken() !== null);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      setRestoring(false);
+      return;
+    }
+
+    const siteId = new URLSearchParams(window.location.search).get('site');
+    const path = siteId ? `/api/sites/${siteId}` : '/api/sites';
+
+    fetch(path, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        if (!res.ok) throw new Error('Session expired');
+        if (siteId) setView({ kind: 'editor', siteId });
+        else setView({ kind: 'dashboard' });
+      })
+      .catch(() => {
+        clearToken();
+        setView({ kind: 'login' });
+      })
+      .finally(() => setRestoring(false));
+  }, []);
 
   function handleLogin(token: string, siteId?: string) {
     setToken(token);
@@ -29,6 +54,14 @@ export default function App() {
   function handleLogout() {
     clearToken();
     setView({ kind: 'login' });
+  }
+
+  if (restoring) {
+    return (
+      <div className="login-page">
+        <p style={{ color: 'var(--muted)' }}>Restoring session…</p>
+      </div>
+    );
   }
 
   if (view.kind === 'login') {
