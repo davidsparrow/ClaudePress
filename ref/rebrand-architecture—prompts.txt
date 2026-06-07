@@ -1,0 +1,621 @@
+Your repo is currently TypeScript-heavy, with a root claudepress package and a separate Vite React editor under /editor; the editor currently has minimal dependencies, so this is a good time to introduce clean dashboard architecture before the UI grows too tangled
+
+
+Reccomended dashboard architecture
+Default: Sites Mode
+
+┌──────────────────────────────┐
+│ PressPal                     │
+│ [ + Add Site ]               │
+│                              │
+│ Client Sites                 │
+│ ├ Acme Plumbing              │
+│ ├ Smith Dental               │
+│ └ Napa Roofing               │
+│                              │
+│ Selected Site Nav            │
+│ ├ Overview                   │
+│ ├ Editor                     │
+│ ├ Pages                      │
+│ ├ Media                      │
+│ ├ Forms                      │
+│ ├ Blog                       │
+│ ├ SEO                        │
+│ ├ Publishes                  │
+│ ├ Backups / Snapshots        │
+│ └ Settings                   │
+│                              │
+│ [Admin Settings]             │
+└──────────────────────────────┘
+
+Admin Mode
+
+┌──────────────────────────────┐
+│ PressPal Admin               │
+│ [← Back to Sites]            │
+│                              │
+│ Workspace                    │
+│ ├ Overview                   │
+│ ├ Users                      │
+│ ├ Client Access              │
+│ ├ Integrations               │
+│ ├ Email / Resend             │
+│ ├ AI Providers               │
+│ ├ Billing                    │
+│ ├ Defaults                   │
+│ └ Security                   │
+└──────────────────────────────┘
+
+This is cleaner than having three sidebars.
+The user always knows:
+“Am I managing a client site, or am I managing PressPal itself?”
+
+Naming the sections
+I would use these labels:
+Site-level sections
+	•	Overview
+	•	Editor
+	•	Pages
+	•	Media
+	•	Forms
+	•	Blog
+	•	SEO
+	•	Publishes
+	•	Snapshots
+	•	Settings
+Admin-level sections
+	•	Workspace
+	•	Users
+	•	Integrations
+	•	Email
+	•	AI Providers
+	•	Billing
+	•	Defaults
+	•	Security
+Do not call site backups “Backup Settings” at first. Use:
+Snapshots
+It sounds safer, simpler, and more modern than backups.
+
+Cursor Prompt 1 — Rebrand ClaudePress to PressPal CMS
+
+You are working in my existing repo: davidsparrow/ClaudePress.
+
+Goal:
+Refactor the project branding from ClaudePress to PressPal CMS without changing core behavior.
+
+Important:
+- Do not rewrite the app from scratch.
+- Preserve the existing ingest, Guardian, editor, publish, email, WordPress import, and SEO prompt functionality.
+- Make small safe commits/changes.
+- Run typecheck/build/tests after changes where possible.
+
+Tasks:
+1. Rename visible product branding:
+   - ClaudePress → PressPal
+   - ClaudePress CMS → PressPal CMS
+   - claudepress → presspal where appropriate
+   - ClaudePress-Ingest/1.0 → PressPal-Ingest/1.0
+2. Update package metadata:
+   - Root package name from `claudepress` to `presspal`
+   - Editor package name from `claudepress-editor` to `presspal-editor`
+   - Description should become:
+     “Client-safe CMS for agency-built sites — ingest, edit, validate, and publish static websites.”
+3. Update README and any docs/comments that describe the product.
+4. Do not rename environment variables yet if doing so would risk breaking the app. Instead add aliases where needed and leave comments for future cleanup.
+5. Search for all remaining “ClaudePress” / “claudepress” references and report any intentionally preserved references.
+
+Acceptance criteria:
+- App still builds.
+- Tests still pass.
+- No user-facing ClaudePress branding remains.
+- Internal rename does not break imports or scripts.
+---
+
+Cursor Prompt 2A — Add architecture doc for PressPal dashboard decisions
+
+Goal:
+Create a short but clear architecture doc explaining the new dashboard structure.
+
+Add file:
+docs/presspal-dashboard-architecture.md
+
+Content:
+1. Product principle:
+   “One sidebar, two modes: Sites Mode and Admin Mode.”
+2. Why:
+   - Client site management and workspace admin are different contexts.
+   - Avoid multiple competing sidebars.
+   - Keep site settings under the selected site.
+3. Sites Mode:
+   - Site selection
+   - Site-level sections
+   - Site-specific Settings
+4. Admin Mode:
+   - Workspace-level settings
+   - Integrations
+   - Billing
+   - Users/security
+5. Do not create:
+   - A second permanent site settings sidebar
+   - Global settings mixed into site settings
+   - Client editing tools inside Admin Mode
+6. Future:
+   - Breadcrumbs
+   - Command palette
+   - Agency-wide bulk updates
+   - Mobile drawer behavior
+
+Acceptance criteria:
+- Doc exists.
+- It matches the implemented layout.
+- Cursor/future developers can understand the UI rules before editing dashboard code.
+---
+
+Cursor Prompt 2B — Create the new dashboard layout shell
+
+Goal:
+Refactor the editor dashboard UI to use a global collapsible left sidebar with two modes:
+1. Sites Mode
+2. Admin Mode
+
+Do not implement every page yet. Create the layout architecture and placeholder screens where needed.
+
+Current repo:
+- React/Vite editor is under `/editor`.
+- Preserve existing functionality and route behavior as much as possible.
+- Do not add heavy UI libraries unless absolutely necessary.
+- Use plain React + CSS modules or existing CSS conventions.
+
+Design requirements:
+1. Add a persistent left sidebar for authenticated/admin users.
+2. Sidebar can collapse to icon-only width.
+3. Sidebar has two modes:
+   - `sites`
+   - `admin`
+4. Sites Mode includes:
+   - PressPal logo/title
+   - + Add Site button
+   - Search/filter input for client sites
+   - Client site list
+   - Selected site navigation:
+     - Overview
+     - Editor
+     - Pages
+     - Media
+     - Forms
+     - SEO
+     - Publishes
+     - Snapshots
+     - Settings
+   - Admin Settings button at bottom
+5. Admin Mode includes:
+   - PressPal Admin title
+   - Back to Sites button
+   - Admin nav:
+     - Workspace
+     - Users
+     - Client Access
+     - Integrations
+     - Email / Resend
+     - AI Providers
+     - Billing
+     - Defaults
+     - Security
+6. Main content area should render the selected section.
+7. MVP Navigation Source of Truth
+
+Sites Mode navigation:
+
+Client Sites
+  Selected Site
+    Overview
+    Editor
+    Pages
+    Media
+    Forms
+    SEO
+    Publishes
+    Snapshots
+    Settings
+
+Admin Settings navigation:
+
+Workspace
+Users
+Client Access
+Integrations
+Email / Resend
+AI Providers
+Billing
+Defaults
+Security
+
+Rules:
+- Blog is intentionally deferred unless already implemented cleanly.
+- Blog may be added later under selected site navigation after Forms, Media, SEO, and Snapshots are stable.
+- Do not create a second permanent sidebar for Site Settings.
+- Do not keep the old site dropdown once sidebar site selection works.
+- Do not mix Admin Settings with selected-site Settings.
+8. Use local state first if no router exists. If a router exists, integrate cleanly.
+9. Current site drop-down selection should be replaced by selecting a site from the sidebar list.
+10. Add empty state:
+   - “No client sites yet”
+   - CTA: “Ingest your first site”
+11. Add responsive behavior:
+   - Desktop: sidebar visible
+   - Mobile/narrow: sidebar becomes drawer or collapses above content
+
+Acceptance criteria:
+- Existing editor can still load.
+- Selecting a client site in the sidebar updates active site context.
+- Admin Settings switches sidebar into Admin Mode.
+- Back to Sites returns to Sites Mode.
+- The current dropdown-based site selector is removed or hidden.
+- No duplicate competing sidebars are introduced.
+---
+
+Cursor Prompt 3 — Add app state model for selected site and sidebar mode
+
+Goal:
+Add a clean dashboard state model for PressPal.
+
+Implement a lightweight state layer for:
+- selectedSiteId
+- sidebarMode: "sites" | "admin"
+- activeSiteSection
+- activeAdminSection
+- sidebarCollapsed
+
+Instructions:
+1. Create a dashboard context/provider inside `/editor/src`:
+   - DashboardProvider
+   - useDashboard()
+2. State fields:
+   - selectedSiteId: string | null
+   - sidebarMode: "sites" | "admin"
+   - activeSiteSection:
+     "overview" | "editor" | "pages" | "media" | "forms" | "blog" | "seo" | "publishes" | "snapshots" | "settings"
+   - activeAdminSection:
+     "workspace" | "users" | "client-access" | "integrations" | "email" | "ai-providers" | "billing" | "defaults" | "security"
+   - sidebarCollapsed: boolean
+3. Expose actions:
+   - selectSite(siteId)
+   - switchToAdmin()
+   - switchToSites()
+   - setActiveSiteSection(section)
+   - setActiveAdminSection(section)
+   - toggleSidebarCollapsed()
+4. Persist these preferences in localStorage:
+   - selectedSiteId
+   - sidebarMode
+   - activeSiteSection
+   - activeAdminSection
+   - sidebarCollapsed
+5. Validate localStorage values before using them so invalid values do not crash the app.
+6. If selectedSiteId no longer exists, clear it and show the no-site empty state.
+
+Acceptance criteria:
+- Dashboard state is centralized.
+- Components do not pass selected site through many prop layers.
+- Reloading the editor preserves the last selected site and section.
+- Invalid localStorage values safely reset to defaults.
+---
+
+Cursor Prompt 4 — Convert site dropdown to sidebar site list
+
+Goal:
+Remove the old client site dropdown pattern and replace it with the new sidebar site list selection.
+
+Instructions:
+1. Locate the current site selection dropdown in the editor UI.
+2. Identify the data source used to load available sites.
+3. Reuse that data source in the new sidebar.
+4. Render each site as a sidebar item with:
+   - Site name
+   - Domain or short URL if available
+   - Status badge if available:
+     - Draft
+     - Live
+     - Needs Publish
+     - Error
+5. Clicking a site should:
+   - update selectedSiteId in DashboardProvider
+   - switch sidebarMode to "sites"
+   - keep or default activeSiteSection to "overview"
+6. Show the active selected site visually.
+7. Add a search input that filters sites by name/domain.
+8. Keep the old dropdown code only if needed temporarily, but hide it and add a TODO to remove after migration.
+
+Acceptance criteria:
+- Site selection works entirely from the sidebar.
+- No visible old dropdown remains.
+- Main content updates when selected site changes.
+- Empty and loading states are handled.
+---
+
+Cursor Prompt 5 — Add site-level Settings page instead of another sidebar
+
+Goal:
+Add a selected-site Settings page in the main content area. Do not add a second permanent sidebar.
+
+Rationale:
+We want one global left sidebar. Site settings should live under:
+Selected Site → Settings
+
+Build a placeholder but useful Site Settings page with sections/cards.
+
+Sections:
+1. Site Identity
+   - Site name
+   - Live domain
+   - Internal slug/site id
+2. Publishing
+   - Provider: Vercel/static/local placeholder
+   - Last publish date
+   - Current publish status
+   - Publish target/domain
+3. Snapshots
+   - Latest snapshot
+   - Snapshot count
+   - Rollback availability
+4. Metadata
+   - Default SEO title
+   - Default meta description
+   - OpenGraph fallback image
+5. Forms / Email
+   - Notification email
+   - Resend status
+6. Access
+   - Client password/magic link placeholder
+   - Client users placeholder
+7. Danger Zone
+   - Archive site placeholder
+   - Delete site placeholder disabled for now
+
+Instructions:
+- Reuse existing site data if available.
+- If fields are not in the backend yet, use read-only placeholders and TODOs.
+- Do not build destructive actions yet.
+- Make it clear this is site-specific, not workspace/admin settings.
+
+Acceptance criteria:
+- Clicking Settings in the site nav opens this page.
+- No new permanent sidebar is added.
+- Site settings are visually grouped into cards.
+- Missing backend fields do not crash the page.
+---
+
+Cursor Prompt 6 — Add Admin Settings mode screens
+
+Goal:
+Implement Admin Mode screens as placeholders with any existing settings wired where possible.
+
+Admin Mode sidebar items:
+- Workspace
+- Users
+- Client Access
+- Integrations
+- Email / Resend
+- AI Providers
+- Billing
+- Defaults
+- Security
+
+Instructions:
+1. Admin Settings button switches sidebarMode to "admin".
+2. Back to Sites returns sidebarMode to "sites".
+3. Main area renders based on activeAdminSection.
+4. Create placeholder screens with clear copy:
+   - Workspace: agency name, default timezone placeholder
+   - Users: admin/team users placeholder
+   - Client Access: client invite/default permission placeholder
+   - Integrations: Vercel, TinyPNG/Cloudinary/imgix placeholders
+   - Email / Resend: wire existing Resend settings if available
+   - AI Providers: Claude/OpenAI/Gemini BYOK placeholders
+   - Billing: placeholder
+   - Defaults: default Guardian rules, SEO defaults, media limits
+   - Security: 2FA, login history, audit log placeholders
+5. Do not overbuild backend persistence unless it already exists.
+6. Add TODO comments for each setting that needs API persistence later.
+
+Acceptance criteria:
+- Admin Mode feels separate from client site management.
+- Existing Resend/email settings are not broken.
+- No global settings are mixed into the site-level Settings page.
+
+
+Cursor Prompt 7 — Add PressPal Forms as a first-class module
+Goal:
+Turn the existing one-contact-form-per-site functionality into a visible product module called PressPal Forms.
+
+Important:
+Do not build a full form builder yet. Reuse the current email config and submissions inbox.
+
+MVP scope:
+1. Add a site-level Forms section in the dashboard.
+2. Show current form status for the selected site:
+   - Enabled/disabled
+   - Notification recipient
+   - Resend/email status
+   - Submission count if available
+3. Allow editing only the fields the backend already supports or can support safely:
+   - notification email
+   - success message
+   - enabled/disabled
+4. Show existing form submissions inbox:
+   - date
+   - sender name/email if available
+   - message preview
+   - read/view details action if available
+5. Show existing embed snippet/contact form snippet if available.
+6. Add friendly product copy:
+   “PressPal Forms gives each client site a working contact form and lead inbox — no WordPress plugin, no SMTP headache.”
+7. Add future placeholders but do not implement yet:
+   - Additional forms
+   - Custom fields
+   - File uploads
+   - Conditional logic
+   - Webhooks/Zapier
+8. Guardian validation:
+   - recipient email must be valid
+   - success message must not contain scripts/raw HTML
+   - form cannot be enabled without a recipient email unless submissions-only mode already exists
+9. Preserve existing APIs and data model where possible.
+
+Acceptance criteria:
+- Forms section works with the current one-form-per-site backend.
+- Existing submissions are visible.
+- Existing email/Resend behavior is preserved.
+- No full form-builder scope creep.
+- Forms can be managed per selected site.
+- Missing backend persistence is handled gracefully.
+—-
+
+
+
+Cursor Prompt 8 — Add Guarded Media module
+
+Goal:
+Create the Guarded Media dashboard module without overbuilding upload/optimization yet.
+
+Current state:
+MediaAsset exists from WordPress import only. There is currently no upload API, no Sharp integration, and no full media storage pipeline.
+
+MVP scope for this prompt:
+1. Add a site-level Media section in the dashboard.
+2. Display existing MediaAsset records for the selected site.
+3. For each asset, show available metadata:
+   - title/filename
+   - source URL
+   - mime type
+   - file size if available
+   - width/height if available
+   - alt text
+   - caption
+   - imported status/source
+4. Add media search/filter by filename/title/type.
+5. Allow editing alt text/title/caption only if the current backend can persist it safely. If not, create UI placeholders and TODOs.
+6. Add empty state:
+   “No media yet. Media uploads and optimization are coming soon.”
+7. Add future feature placeholders:
+   - Upload images
+   - Compress automatically
+   - Generate WebP/AVIF
+   - TinyPNG/Tinify integration
+   - Cloudinary/imgix integration
+   - Replace image slots safely
+8. Add docs or TODO comments for Stage 2 media pipeline:
+   - upload endpoint
+   - file validation
+   - storage provider
+   - Sharp optimization
+   - original + optimized derivatives
+   - Guardian media rules
+9. Do not add Sharp or new upload APIs in this prompt unless the repo already has safe upload/storage infrastructure.
+
+Acceptance criteria:
+- Media appears as a first-class dashboard section.
+- Existing WordPress-imported media is visible.
+- No broken upload UX is shipped.
+- Future optimization/upload work is clearly staged.
+—-
+
+Cursor Prompt 9 — Add Snapshots page and rollback UX foundation
+
+Goal:
+Make PressPal’s existing version/publish snapshot concept visible in the dashboard.
+
+Tasks:
+1. Add Snapshots section for selected site.
+2. Show list of snapshots/publishes:
+   - Date/time
+   - Published by
+   - Status
+   - Domain/target
+   - Change summary if available
+   - Rollback button placeholder or working rollback if already supported
+3. Add visual copy:
+   - “Every publish is saved as an immutable snapshot.”
+   - “Rollback restores content, not code.”
+4. If existing publish records exist, load and display them.
+5. If no API exists, create a clean stub endpoint and placeholder empty state.
+6. Add compare placeholder:
+   - “Compare to current”
+   - Disabled if not implemented
+7. Do not build risky rollback behavior unless existing render/publish logic makes it safe.
+8. Add TODO comments for full rollback implementation.
+
+Acceptance criteria:
+- Snapshots is visible in site nav.
+- Existing publish/version data is surfaced if available.
+- No destructive rollback behavior is added without validation.
+- This page clearly reinforces PressPal’s safety promise.
+
+
+Cursor Prompt 10 — Add SEO module and preserve React SEO prompts
+
+Goal:
+Create a site-level SEO section that combines client-friendly SEO fields with developer-facing React SEO prompts.
+
+Existing context:
+The repo already has SEO prompt functionality. Preserve it and make it easier to access.
+
+Tasks:
+1. Add SEO section for selected site.
+2. SEO page should have two tabs or panels:
+   - Page SEO
+   - React SEO Prompts
+3. Page SEO should support or stub:
+   - Page title
+   - Meta description
+   - Slug
+   - Canonical URL
+   - OpenGraph title
+   - OpenGraph image
+   - Robots setting
+4. React SEO Prompts should expose existing prompt-generation functionality.
+5. Add “Copy Cursor Fix Prompt” button for generated prompts.
+6. Add Guardian SEO validation:
+   - missing page title warning
+   - missing meta description warning
+   - missing alt text warning
+   - duplicate slug warning placeholder
+7. Do not block publish yet unless validation severity is critical. Use warnings first.
+
+Acceptance criteria:
+- SEO appears as a product module.
+- Existing SEO prompt API is not broken.
+- Client-friendly SEO fields and developer prompts are clearly separated.
+- User can copy a Cursor-ready SEO improvement prompt.
+
+
+Cursor Prompt 12 — Clean up after dashboard refactor
+
+Goal:
+Audit and clean the dashboard refactor.
+
+Tasks:
+1. Search for old dropdown site selector code.
+2. Remove dead components only if safe.
+3. Search for hardcoded ClaudePress branding.
+4. Search for duplicate sidebar/layout components.
+5. Run:
+   - npm test
+   - npm run build
+   - npm run build --prefix editor if needed
+6. Fix TypeScript errors.
+7. Add or update minimal tests for:
+   - DashboardProvider localStorage validation
+   - sidebar mode switching
+   - selected site clearing if missing
+8. Create a short summary in docs/refactor-notes.md:
+   - What changed
+   - What was preserved
+   - Known TODOs
+   - Next recommended sprint
+
+Acceptance criteria:
+- Build passes.
+- Tests pass or any failures are clearly documented.
+- No visible ClaudePress branding remains.
+- Dashboard has one global sidebar with two modes.
