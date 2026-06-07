@@ -13,9 +13,11 @@ interface Props {
   siteId: string;
   onBack: () => void;
   onLogout: () => void;
+  /** When true, shell provides top bar; editor fills remaining viewport */
+  embedded?: boolean;
 }
 
-export default function Editor({ siteId, onBack, onLogout }: Props) {
+export default function Editor({ siteId, onBack, onLogout, embedded }: Props) {
   const [site, setSite] = useState<Site | null>(null);
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
@@ -165,32 +167,45 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
     }
   }
 
+  const editorActions = (
+    <>
+      {status && <span className="status-ok">{status}</span>}
+      <button className="secondary" onClick={snapshotVersion}>
+        Snapshot
+      </button>
+      <button onClick={publishSite}>Publish</button>
+      <button className="secondary" onClick={downloadWordPress}>
+        WordPress
+      </button>
+      <button className="secondary" onClick={() => setShowSeo(true)}>
+        SEO prompts
+      </button>
+    </>
+  );
+
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <button className="secondary" onClick={onBack}>
-          ← Back
-        </button>
-        <h1>{site?.meta.name ?? 'Editor'}</h1>
-        <div className="spacer" />
-        {status && <span className="status-ok">{status}</span>}
-        <button className="secondary" onClick={snapshotVersion}>
-          Snapshot
-        </button>
-        <button onClick={publishSite}>Publish</button>
-        <button className="secondary" onClick={downloadWordPress}>
-          WordPress
-        </button>
-        <button className="secondary" onClick={() => setShowSeo(true)}>
-          SEO prompts
-        </button>
-        <button className="secondary" onClick={onLogout}>
-          Sign out
-        </button>
-      </header>
+    <div className={`app-shell${embedded ? ' app-shell--embedded' : ''}`}>
+      {embedded ? (
+        <div className="editor-embedded-toolbar">
+          <div className="spacer" />
+          {editorActions}
+        </div>
+      ) : (
+        <header className="topbar">
+          <button className="secondary" onClick={onBack}>
+            ← Back
+          </button>
+          <h1>{site?.meta.name ?? 'Editor'}</h1>
+          <div className="spacer" />
+          {editorActions}
+          <button className="secondary" onClick={onLogout}>
+            Sign out
+          </button>
+        </header>
+      )}
 
       {error && (
-        <div className="error-banner" style={{ margin: '0.75rem 1rem 0' }}>
+        <div className="error-banner" style={{ margin: embedded ? '0' : '0.75rem 1rem 0' }}>
           {error}
         </div>
       )}
