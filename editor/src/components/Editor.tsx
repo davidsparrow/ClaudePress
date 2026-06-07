@@ -104,6 +104,18 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
     }
   }
 
+  async function publishSite() {
+    try {
+      setStatus('Publishing…');
+      const result = await api.publish(siteId, `Publish ${new Date().toLocaleString()}`);
+      const url = result.deploymentUrl ?? result.publish.deploymentUrl;
+      setStatus(url ? `Published → ${url}` : 'Published locally');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Publish failed');
+      setStatus('');
+    }
+  }
+
   async function rollback(versionId: string) {
     if (!confirm('Restore this version? Current unsaved edits will be replaced.')) return;
     try {
@@ -128,6 +140,7 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
         <button className="secondary" onClick={snapshotVersion}>
           Snapshot
         </button>
+        <button onClick={publishSite}>Publish</button>
         <button className="secondary" onClick={onLogout}>
           Sign out
         </button>

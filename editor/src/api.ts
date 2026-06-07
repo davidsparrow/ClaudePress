@@ -63,4 +63,13 @@ export const api = {
     }),
   restoreVersion: (siteId: string, versionId: string) =>
     request<Site>(`/sites/${siteId}/versions/${versionId}/restore`, { method: 'POST' }),
+  publish: (siteId: string, label?: string, deploy = true) =>
+    request<{ publish: { id: string; deploymentUrl?: string }; deploymentUrl?: string }>(
+      `/sites/${siteId}/publish`,
+      { method: 'POST', body: JSON.stringify({ label, deploy }) }
+    ),
+  listPublishes: (siteId: string) =>
+    request<Array<{ id: string; label: string; createdAt: string; deploymentUrl?: string }>>(
+      `/sites/${siteId}/publishes`
+    ),
 };

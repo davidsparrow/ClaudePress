@@ -5,6 +5,7 @@ import { ingestUrl, ingestHtml } from './ingest/index.js';
 import { renderPage } from './content/render.js';
 import { validateChanges, mergeValidatedSlots } from './guardian/validate.js';
 import sitesRouter from './api/sites.js';
+import publishRouter from './api/publish.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -13,6 +14,7 @@ const PORT = process.env.PORT ?? 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use('/api', sitesRouter);
+app.use('/api', publishRouter);
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {
