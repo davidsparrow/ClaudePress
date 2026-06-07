@@ -57,6 +57,8 @@ export interface SiteVersion {
   id: string;
   label: string;
   createdAt: string;
+  /** Set when this version is the pre-publish content snapshot for a publish bundle */
+  publishId?: string;
   /** pageId -> snapshot of PageContent */
   pages: Record<string, PageContent>;
 }
@@ -88,7 +90,7 @@ export interface StorageAdapter {
 
   listVersions(siteId: string): Promise<SiteVersion[]>;
   getVersion(siteId: string, versionId: string): Promise<SiteVersion | null>;
-  createVersion(siteId: string, label: string): Promise<SiteVersion>;
+  createVersion(siteId: string, label: string, options?: { publishId?: string }): Promise<SiteVersion>;
   restoreVersion(siteId: string, versionId: string): Promise<Site>;
 
   // Blog content (WordPress import)

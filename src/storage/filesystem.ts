@@ -193,12 +193,13 @@ export class FileSystemStorage implements StorageAdapter {
     }
   }
 
-  async createVersion(siteId: string, label: string): Promise<SiteVersion> {
+  async createVersion(siteId: string, label: string, options?: { publishId?: string }): Promise<SiteVersion> {
     const pages = await this.listPages(siteId);
     const version: SiteVersion = {
       id: nanoid(10),
       label,
       createdAt: new Date().toISOString(),
+      ...(options?.publishId ? { publishId: options.publishId } : {}),
       pages: Object.fromEntries(pages.map((p) => [p.id, p.content])),
     };
     await this.writeJson(join(this.versionsDir(siteId), `${version.id}.json`), version);

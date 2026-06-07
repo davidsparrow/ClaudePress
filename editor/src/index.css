@@ -820,6 +820,84 @@ textarea:focus {
   opacity: 0.9;
 }
 
+.snapshots-summary {
+  margin-top: 0.5rem;
+}
+
+.snapshots-empty p {
+  margin: 0 0 0.5rem;
+}
+
+.snapshots-table-scroll {
+  overflow-x: auto;
+}
+
+.snapshots-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.snapshots-table th,
+.snapshots-table td {
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.snapshots-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.snapshots-table__muted {
+  color: var(--muted);
+}
+
+.snapshots-status {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.snapshots-status--ok {
+  color: var(--success);
+}
+
+.snapshots-status--warn {
+  color: #fbbf24;
+}
+
+.snapshots-status--muted {
+  color: var(--muted);
+}
+
+.snapshots-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.snapshots-action-btn {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.snapshots-version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.snapshots-future {
+  opacity: 0.9;
+}
+
 .app-shell--embedded {
   min-height: 0;
   flex: 1;

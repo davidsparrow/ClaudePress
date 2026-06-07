@@ -144,12 +144,13 @@ export class MongoStorage implements StorageAdapter {
     return db.collection<SiteVersion>('versions').findOne({ siteId, id: versionId });
   }
 
-  async createVersion(siteId: string, label: string): Promise<SiteVersion> {
+  async createVersion(siteId: string, label: string, options?: { publishId?: string }): Promise<SiteVersion> {
     const pages = await this.listPages(siteId);
     const version: SiteVersion & { siteId: string } = {
       id: nanoid(10),
       label,
       createdAt: new Date().toISOString(),
+      ...(options?.publishId ? { publishId: options.publishId } : {}),
       pages: Object.fromEntries(pages.map((p) => [p.id, p.content])),
       siteId,
     };

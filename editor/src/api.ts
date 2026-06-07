@@ -43,6 +43,17 @@ export interface MediaAsset {
   createdAt: string;
 }
 
+export interface PublishRecord {
+  id: string;
+  siteId: string;
+  label: string;
+  createdAt: string;
+  pageCount: number;
+  prePublishVersionId?: string;
+  deploymentUrl?: string;
+  vercelDeploymentId?: string;
+}
+
 const TOKEN_KEY = 'presspal_token';
 const LEGACY_TOKEN_KEY = 'claudepress_token';
 
@@ -120,9 +131,11 @@ export const api = {
       `/sites/${siteId}/publish`,
       { method: 'POST', body: JSON.stringify({ label, deploy }) }
     ),
-  listPublishes: (siteId: string) =>
-    request<Array<{ id: string; label: string; createdAt: string; deploymentUrl?: string }>>(
-      `/sites/${siteId}/publishes`
+  listPublishes: (siteId: string) => request<PublishRecord[]>(`/sites/${siteId}/publishes`),
+  rollbackPublish: (siteId: string, publishId: string) =>
+    request<{ ok: boolean; versionId: string; publish: PublishRecord }>(
+      `/sites/${siteId}/publishes/${publishId}/rollback`,
+      { method: 'POST' }
     ),
   chat: (siteId: string, pageId: string, message: string) =>
     request<{ explanation: string; html: string; page: SitePage }>(

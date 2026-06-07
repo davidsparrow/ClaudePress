@@ -8,6 +8,7 @@ import OverviewPage from '../pages/OverviewPage';
 import PagesPage from '../pages/PagesPage';
 import FormsPage from '../pages/FormsPage';
 import MediaPage from '../pages/MediaPage';
+import SnapshotsPage from '../pages/SnapshotsPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
 import SettingsPage from '../pages/SettingsPage';
 import AdminPage from '../pages/admin/AdminPage';
@@ -199,10 +200,7 @@ export default function DashboardShell({ onLogout }: Props) {
         );
       case 'snapshots':
         return (
-          <PlaceholderPage
-            title="Snapshots"
-            description="Immutable publish snapshots and rollback (Phase 9)."
-          />
+          <SnapshotsPage siteId={selectedSiteId} siteDomain={selectedSite?.domain} />
         );
       case 'settings':
         return <SettingsPage siteId={selectedSiteId} />;
