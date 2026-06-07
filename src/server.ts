@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import { join } from 'node:path';
 import { ingestUrl, ingestHtml } from './ingest/index.js';
 import { renderPage } from './content/render.js';
 import { validateChanges, mergeValidatedSlots } from './guardian/validate.js';
+import sitesRouter from './api/sites.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -10,6 +12,7 @@ const PORT = process.env.PORT ?? 3001;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use('/api', sitesRouter);
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {
@@ -81,6 +84,13 @@ app.post('/api/guardian/validate', (req, res) => {
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', version: '0.1.0' });
+});
+
+// Editor SPA (added in chunk 3)
+const editorDist = join(process.cwd(), 'editor', 'dist');
+app.use('/editor', express.static(editorDist));
+app.get('/editor/*', (_req, res) => {
+  res.sendFile(join(editorDist, 'index.html'));
 });
 
 if (process.env.NODE_ENV !== 'test') {
