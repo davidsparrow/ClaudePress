@@ -72,4 +72,9 @@ export const api = {
     request<Array<{ id: string; label: string; createdAt: string; deploymentUrl?: string }>>(
       `/sites/${siteId}/publishes`
     ),
+  chat: (siteId: string, pageId: string, message: string) =>
+    request<{ explanation: string; html: string; page: SitePage }>(
+      `/sites/${siteId}/pages/${pageId}/chat`,
+      { method: 'POST', body: JSON.stringify({ message }) }
+    ),
 };

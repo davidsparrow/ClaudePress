@@ -6,6 +6,7 @@ import { renderPage } from './content/render.js';
 import { validateChanges, mergeValidatedSlots } from './guardian/validate.js';
 import sitesRouter from './api/sites.js';
 import publishRouter from './api/publish.js';
+import chatRouter from './api/chat.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use('/api', sitesRouter);
 app.use('/api', publishRouter);
+app.use('/api', chatRouter);
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {

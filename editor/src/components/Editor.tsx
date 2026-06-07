@@ -128,6 +128,26 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
     }
   }
 
+  async function sendChat(e: React.FormEvent) {
+    e.preventDefault();
+    if (!activePage || !chatInput.trim()) return;
+    setError('');
+    setStatus('Thinking…');
+    try {
+      const result = await api.chat(siteId, activePage.id, chatInput.trim());
+      setSite((s) =>
+        s ? { ...s, pages: s.pages.map((p) => (p.id === result.page.id ? result.page : p)) } : s
+      );
+      setPreviewHtml(result.html);
+      setChatInput('');
+      setStatus(result.explanation);
+      setTimeout(() => setStatus(''), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Chat failed');
+      setStatus('');
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -209,16 +229,18 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
             </div>
           )}
 
-          <div className="chat-box">
+          <form className="chat-box" onSubmit={sendChat}>
             <h2>AI chat</h2>
             <textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               placeholder="Describe a change in plain English…"
-              disabled
             />
-            <div className="hint">AI chat coming in next chunk — use slot editor for now.</div>
-          </div>
+            <button type="submit" style={{ marginTop: '0.5rem', width: '100%' }} disabled={!chatInput.trim()}>
+              Apply with Guardian
+            </button>
+            <div className="hint">AI proposes content-only changes — Guardian validates before saving.</div>
+          </form>
         </aside>
 
         <main className="preview-pane">
