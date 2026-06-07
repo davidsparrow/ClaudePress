@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, type SiteMeta } from '../api';
 import SeoPromptsPanel from './SeoPromptsPanel';
 import EmailSettingsPanel from './EmailSettingsPanel';
+import WordPressImportPanel from './WordPressImportPanel';
 
 interface Props {
   onOpenSite: (siteId: string) => void;
@@ -76,6 +77,13 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
 
       <div className="dashboard">
         {error && <div className="error-banner">{error}</div>}
+
+        <WordPressImportPanel
+          onImported={(siteId) => {
+            void api.listSites().then(setSites);
+            onOpenSite(siteId);
+          }}
+        />
 
         <div className="panel" style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>New site</h2>

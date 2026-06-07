@@ -1,4 +1,6 @@
 import { MongoClient, type Db } from 'mongodb';
+import { join } from 'node:path';
+import { mkdir } from 'node:fs/promises';
 import { nanoid } from 'nanoid';
 import type {
   StorageAdapter,
@@ -8,6 +10,17 @@ import type {
   SiteVersion,
   FormSubmission,
 } from './types.js';
+import type {
+  Author,
+  Category,
+  Tag,
+  MediaAsset,
+  Article,
+  Comment,
+  ImportJob,
+} from '../content/blog-types.js';
+
+const DEFAULT_DATA_DIR = join(process.cwd(), 'data');
 
 /** MongoDB storage — activated when MONGODB_URI is set */
 export class MongoStorage implements StorageAdapter {
@@ -46,7 +59,7 @@ export class MongoStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
   ): Promise<SiteMeta> {
     const db = await this.db();
     const updatedAt = new Date().toISOString();
@@ -69,6 +82,18 @@ export class MongoStorage implements StorageAdapter {
     await db.collection<SitePage>('pages').deleteMany({ siteId });
     await db.collection<SiteVersion>('versions').deleteMany({ siteId });
     await db.collection<FormSubmission>('submissions').deleteMany({ siteId });
+    await db.collection('authors').deleteMany({ siteId });
+    await db.collection('categories').deleteMany({ siteId });
+    await db.collection('tags').deleteMany({ siteId });
+    await db.collection('mediaAssets').deleteMany({ siteId });
+    await db.collection('articles').deleteMany({ siteId });
+    await db.collection('comments').deleteMany({ siteId });
+    await db.collection('importJobs').deleteMany({ siteId });
+  }
+
+  getSitePublicDir(siteId: string): string {
+    const root = process.env.DATA_DIR ?? DEFAULT_DATA_DIR;
+    return join(root, 'sites', siteId, 'public');
   }
 
   async listPages(siteId: string): Promise<SitePage[]> {
@@ -173,5 +198,145 @@ export class MongoStorage implements StorageAdapter {
   async getSubmission(siteId: string, submissionId: string): Promise<FormSubmission | null> {
     const db = await this.db();
     return db.collection<FormSubmission>('submissions').findOne({ siteId, id: submissionId });
+  }
+
+  async upsertAuthor(
+    siteId: string,
+    author: Omit<Author, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Author> {
+    const db = await this.db();
+    const saved: Author = { ...author, siteId, createdAt: author.createdAt ?? new Date().toISOString() };
+    await db.collection<Author>('authors').updateOne({ siteId, id: author.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listAuthors(siteId: string): Promise<Author[]> {
+    const db = await this.db();
+    return db.collection<Author>('authors').find({ siteId }).toArray();
+  }
+
+  async upsertCategory(
+    siteId: string,
+    category: Omit<Category, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Category> {
+    const db = await this.db();
+    const saved: Category = { ...category, siteId, createdAt: category.createdAt ?? new Date().toISOString() };
+    await db.collection<Category>('categories').updateOne({ siteId, id: category.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listCategories(siteId: string): Promise<Category[]> {
+    const db = await this.db();
+    return db.collection<Category>('categories').find({ siteId }).toArray();
+  }
+
+  async upsertTag(
+    siteId: string,
+    tag: Omit<Tag, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Tag> {
+    const db = await this.db();
+    const saved: Tag = { ...tag, siteId, createdAt: tag.createdAt ?? new Date().toISOString() };
+    await db.collection<Tag>('tags').updateOne({ siteId, id: tag.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listTags(siteId: string): Promise<Tag[]> {
+    const db = await this.db();
+    return db.collection<Tag>('tags').find({ siteId }).toArray();
+  }
+
+  async upsertMediaAsset(
+    siteId: string,
+    asset: Omit<MediaAsset, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<MediaAsset> {
+    const db = await this.db();
+    const saved: MediaAsset = { ...asset, siteId, createdAt: asset.createdAt ?? new Date().toISOString() };
+    await db.collection<MediaAsset>('mediaAssets').updateOne({ siteId, id: asset.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listMediaAssets(siteId: string): Promise<MediaAsset[]> {
+    const db = await this.db();
+    return db.collection<MediaAsset>('mediaAssets').find({ siteId }).toArray();
+  }
+
+  async upsertArticle(
+    siteId: string,
+    article: Omit<Article, 'siteId' | 'createdAt' | 'updatedAt'> & { createdAt?: string; updatedAt?: string }
+  ): Promise<Article> {
+    const db = await this.db();
+    const now = new Date().toISOString();
+    const saved: Article = {
+      ...article,
+      siteId,
+      createdAt: article.createdAt ?? now,
+      updatedAt: article.updatedAt ?? now,
+    };
+    await db.collection<Article>('articles').updateOne({ siteId, id: article.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listArticles(siteId: string): Promise<Article[]> {
+    const db = await this.db();
+    return db.collection<Article>('articles').find({ siteId }).toArray();
+  }
+
+  async getArticle(siteId: string, articleId: string): Promise<Article | null> {
+    const db = await this.db();
+    return db.collection<Article>('articles').findOne({ siteId, id: articleId });
+  }
+
+  async upsertComment(
+    siteId: string,
+    comment: Omit<Comment, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Comment> {
+    const db = await this.db();
+    const saved: Comment = { ...comment, siteId, createdAt: comment.createdAt ?? new Date().toISOString() };
+    await db.collection<Comment>('comments').updateOne({ siteId, id: comment.id }, { $set: saved }, { upsert: true });
+    return saved;
+  }
+
+  async listComments(siteId: string): Promise<Comment[]> {
+    const db = await this.db();
+    return db.collection<Comment>('comments').find({ siteId }).toArray();
+  }
+
+  async createImportJob(siteId: string): Promise<ImportJob> {
+    const db = await this.db();
+    const now = new Date().toISOString();
+    const job: ImportJob = {
+      id: nanoid(12),
+      siteId,
+      status: 'pending',
+      progress: 0,
+      errors: [],
+      stats: {
+        authors: 0,
+        categories: 0,
+        tags: 0,
+        attachments: 0,
+        articles: 0,
+        comments: 0,
+        sitePages: 0,
+        mediaFailed: 0,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.collection<ImportJob>('importJobs').insertOne(job);
+    await mkdir(join(this.getSitePublicDir(siteId), 'wp-content', 'uploads'), { recursive: true });
+    return job;
+  }
+
+  async getImportJob(siteId: string, jobId: string): Promise<ImportJob | null> {
+    const db = await this.db();
+    return db.collection<ImportJob>('importJobs').findOne({ siteId, id: jobId });
+  }
+
+  async updateImportJob(siteId: string, job: ImportJob): Promise<ImportJob> {
+    const db = await this.db();
+    const updated = { ...job, updatedAt: new Date().toISOString() };
+    await db.collection<ImportJob>('importJobs').updateOne({ siteId, id: job.id }, { $set: updated });
+    return updated;
   }
 }

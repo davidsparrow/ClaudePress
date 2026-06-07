@@ -2,6 +2,36 @@ import type { Site, SiteMeta, SitePage, SiteVersion, SlotChange, ContentSlot } f
 
 export type { Site, SiteMeta, SitePage, SiteVersion, SlotChange, ContentSlot };
 
+export interface ImportPreview {
+  siteName: string;
+  siteUrl?: string;
+  suggestedDomain?: string;
+  counts: {
+    authors: number;
+    categories: number;
+    tags: number;
+    attachments: number;
+    articles: number;
+    comments: number;
+    sitePages: number;
+    mediaFailed: number;
+  };
+  authors: Array<{ login: string; displayName: string; email: string }>;
+  pages: Array<{ slug: string; title: string; wpPostId: number }>;
+}
+
+export interface ImportJob {
+  id: string;
+  siteId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  progress: number;
+  currentStep?: string;
+  errors: string[];
+  stats: ImportPreview['counts'];
+  createdAt: string;
+  updatedAt: string;
+}
+
 const TOKEN_KEY = 'claudepress_token';
 
 export function getToken(): string | null {
@@ -95,4 +125,50 @@ export const api = {
     a.click();
     URL.revokeObjectURL(url);
   },
+  previewWordPressImport: async (wxrFile: File): Promise<ImportPreview> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append('wxr', wxrFile);
+    const res = await fetch('/api/import/wordpress/preview', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(body.error ?? 'Preview failed');
+    }
+    return res.json();
+  },
+  importWordPress: async (
+    wxrFile: File,
+    opts: {
+      sourceBaseUrl?: string;
+      uploadsZip?: File;
+      sitePageSlugs?: string[];
+      importDrafts?: boolean;
+    }
+  ): Promise<{ siteId: string; jobId: string; job: ImportJob }> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append('wxr', wxrFile);
+    if (opts.sourceBaseUrl) form.append('sourceBaseUrl', opts.sourceBaseUrl);
+    if (opts.uploadsZip) form.append('uploadsZip', opts.uploadsZip);
+    if (opts.sitePageSlugs) form.append('sitePageSlugs', JSON.stringify(opts.sitePageSlugs));
+    if (opts.importDrafts) form.append('importDrafts', 'true');
+    const res = await fetch('/api/import/wordpress', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(body.error ?? 'Import failed');
+    }
+    return res.json();
+  },
+  listArticles: (siteId: string) =>
+    request<Array<{ id: string; title: string; slug: string; type: string }>>(
+      `/sites/${siteId}/blog/articles`
+    ),
 };

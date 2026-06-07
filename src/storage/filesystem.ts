@@ -9,6 +9,15 @@ import type {
   SiteVersion,
   FormSubmission,
 } from './types.js';
+import type {
+  Author,
+  Category,
+  Tag,
+  MediaAsset,
+  Article,
+  Comment,
+  ImportJob,
+} from '../content/blog-types.js';
 
 const DEFAULT_DATA_DIR = join(process.cwd(), 'data');
 
@@ -38,6 +47,18 @@ export class FileSystemStorage implements StorageAdapter {
 
   private submissionsDir(siteId: string) {
     return join(this.siteDir(siteId), 'submissions');
+  }
+
+  private blogDir(siteId: string, entity: string) {
+    return join(this.siteDir(siteId), 'blog', entity);
+  }
+
+  private importsDir(siteId: string) {
+    return join(this.siteDir(siteId), 'imports');
+  }
+
+  getSitePublicDir(siteId: string): string {
+    return join(this.siteDir(siteId), 'public');
   }
 
   async listSites(): Promise<SiteMeta[]> {
@@ -75,6 +96,7 @@ export class FileSystemStorage implements StorageAdapter {
 
     await mkdir(this.pagesDir(id), { recursive: true });
     await mkdir(this.versionsDir(id), { recursive: true });
+    await mkdir(join(this.siteDir(id), 'public', 'wp-content', 'uploads'), { recursive: true });
     await this.writeJson(this.metaPath(id), meta);
 
     return { meta, pages: [] };
@@ -82,7 +104,7 @@ export class FileSystemStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
   ): Promise<SiteMeta> {
     const meta = await this.readJson<SiteMeta>(this.metaPath(siteId));
     const updated: SiteMeta = {
@@ -234,6 +256,180 @@ export class FileSystemStorage implements StorageAdapter {
       return await this.readJson<FormSubmission>(join(this.submissionsDir(siteId), `${submissionId}.json`));
     } catch {
       return null;
+    }
+  }
+
+  async upsertAuthor(
+    siteId: string,
+    author: Omit<Author, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Author> {
+    const saved: Author = {
+      ...author,
+      siteId,
+      createdAt: author.createdAt ?? new Date().toISOString(),
+    };
+    await mkdir(this.blogDir(siteId, 'authors'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'authors'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listAuthors(siteId: string): Promise<Author[]> {
+    return this.listBlogEntities<Author>(siteId, 'authors');
+  }
+
+  async upsertCategory(
+    siteId: string,
+    category: Omit<Category, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Category> {
+    const saved: Category = {
+      ...category,
+      siteId,
+      createdAt: category.createdAt ?? new Date().toISOString(),
+    };
+    await mkdir(this.blogDir(siteId, 'categories'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'categories'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listCategories(siteId: string): Promise<Category[]> {
+    return this.listBlogEntities<Category>(siteId, 'categories');
+  }
+
+  async upsertTag(
+    siteId: string,
+    tag: Omit<Tag, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Tag> {
+    const saved: Tag = {
+      ...tag,
+      siteId,
+      createdAt: tag.createdAt ?? new Date().toISOString(),
+    };
+    await mkdir(this.blogDir(siteId, 'tags'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'tags'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listTags(siteId: string): Promise<Tag[]> {
+    return this.listBlogEntities<Tag>(siteId, 'tags');
+  }
+
+  async upsertMediaAsset(
+    siteId: string,
+    asset: Omit<MediaAsset, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<MediaAsset> {
+    const saved: MediaAsset = {
+      ...asset,
+      siteId,
+      createdAt: asset.createdAt ?? new Date().toISOString(),
+    };
+    await mkdir(this.blogDir(siteId, 'media'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'media'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listMediaAssets(siteId: string): Promise<MediaAsset[]> {
+    return this.listBlogEntities<MediaAsset>(siteId, 'media');
+  }
+
+  async upsertArticle(
+    siteId: string,
+    article: Omit<Article, 'siteId' | 'createdAt' | 'updatedAt'> & { createdAt?: string; updatedAt?: string }
+  ): Promise<Article> {
+    const now = new Date().toISOString();
+    const saved: Article = {
+      ...article,
+      siteId,
+      createdAt: article.createdAt ?? now,
+      updatedAt: article.updatedAt ?? now,
+    };
+    await mkdir(this.blogDir(siteId, 'articles'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'articles'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listArticles(siteId: string): Promise<Article[]> {
+    return this.listBlogEntities<Article>(siteId, 'articles');
+  }
+
+  async getArticle(siteId: string, articleId: string): Promise<Article | null> {
+    try {
+      return await this.readJson<Article>(join(this.blogDir(siteId, 'articles'), `${articleId}.json`));
+    } catch {
+      return null;
+    }
+  }
+
+  async upsertComment(
+    siteId: string,
+    comment: Omit<Comment, 'siteId' | 'createdAt'> & { createdAt?: string }
+  ): Promise<Comment> {
+    const saved: Comment = {
+      ...comment,
+      siteId,
+      createdAt: comment.createdAt ?? new Date().toISOString(),
+    };
+    await mkdir(this.blogDir(siteId, 'comments'), { recursive: true });
+    await this.writeJson(join(this.blogDir(siteId, 'comments'), `${saved.id}.json`), saved);
+    return saved;
+  }
+
+  async listComments(siteId: string): Promise<Comment[]> {
+    return this.listBlogEntities<Comment>(siteId, 'comments');
+  }
+
+  async createImportJob(siteId: string): Promise<ImportJob> {
+    const now = new Date().toISOString();
+    const job: ImportJob = {
+      id: nanoid(12),
+      siteId,
+      status: 'pending',
+      progress: 0,
+      errors: [],
+      stats: {
+        authors: 0,
+        categories: 0,
+        tags: 0,
+        attachments: 0,
+        articles: 0,
+        comments: 0,
+        sitePages: 0,
+        mediaFailed: 0,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+    await mkdir(this.importsDir(siteId), { recursive: true });
+    await this.writeJson(join(this.importsDir(siteId), `${job.id}.json`), job);
+    return job;
+  }
+
+  async getImportJob(siteId: string, jobId: string): Promise<ImportJob | null> {
+    try {
+      return await this.readJson<ImportJob>(join(this.importsDir(siteId), `${jobId}.json`));
+    } catch {
+      return null;
+    }
+  }
+
+  async updateImportJob(siteId: string, job: ImportJob): Promise<ImportJob> {
+    const updated = { ...job, updatedAt: new Date().toISOString() };
+    await mkdir(this.importsDir(siteId), { recursive: true });
+    await this.writeJson(join(this.importsDir(siteId), `${updated.id}.json`), updated);
+    return updated;
+  }
+
+  private async listBlogEntities<T>(siteId: string, entity: string): Promise<T[]> {
+    try {
+      const dir = this.blogDir(siteId, entity);
+      const files = await readdir(dir);
+      const items: T[] = [];
+      for (const file of files) {
+        if (!file.endsWith('.json')) continue;
+        items.push(await this.readJson<T>(join(dir, file)));
+      }
+      return items;
+    } catch {
+      return [];
     }
   }
 

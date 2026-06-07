@@ -12,6 +12,8 @@ import seoPromptsRouter from './api/seo-prompts.js';
 import emailRouter from './api/email.js';
 import publicRouter from './api/public.js';
 import wordpressRouter from './api/wordpress.js';
+import wordpressImportRouter from './api/wordpress-import.js';
+import { getStorage } from './storage/filesystem.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -27,6 +29,17 @@ app.use('/api', seoPromptsRouter);
 app.use('/api', emailRouter);
 app.use('/api', publicRouter);
 app.use('/api', wordpressRouter);
+app.use('/api', wordpressImportRouter);
+
+/** Serve migrated WordPress media per site */
+app.use('/media/:siteId/wp-content/uploads', (req, res, next) => {
+  const siteId = req.params.siteId;
+  void (async () => {
+    const storage = await getStorage();
+    const base = join(storage.getSitePublicDir(siteId), 'wp-content', 'uploads');
+    express.static(base)(req, res, next);
+  })().catch(next);
+});
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {

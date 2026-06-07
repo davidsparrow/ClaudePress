@@ -1,4 +1,13 @@
 import type { PageContent } from '../content/types.js';
+import type {
+  Author,
+  Category,
+  Tag,
+  MediaAsset,
+  Article,
+  Comment,
+  ImportJob,
+} from '../content/blog-types.js';
 
 /** Per-site Resend config — buyers use their own Resend account (BYOK) */
 export interface SiteEmailConfig {
@@ -14,6 +23,8 @@ export interface SiteMeta {
   id: string;
   name: string;
   domain?: string;
+  /** Original WordPress site URL when imported from WXR */
+  sourceBaseUrl?: string;
   /** bcrypt hash of client password */
   clientPasswordHash?: string;
   email?: SiteEmailConfig;
@@ -57,7 +68,10 @@ export interface StorageAdapter {
   listSites(): Promise<SiteMeta[]>;
   getSite(siteId: string): Promise<Site | null>;
   createSite(name: string, domain?: string): Promise<Site>;
-  updateSiteMeta(siteId: string, patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email'>>): Promise<SiteMeta>;
+  updateSiteMeta(
+    siteId: string,
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
+  ): Promise<SiteMeta>;
   setClientPassword(siteId: string, passwordHash: string): Promise<void>;
   deleteSite(siteId: string): Promise<void>;
 
@@ -74,4 +88,31 @@ export interface StorageAdapter {
   getVersion(siteId: string, versionId: string): Promise<SiteVersion | null>;
   createVersion(siteId: string, label: string): Promise<SiteVersion>;
   restoreVersion(siteId: string, versionId: string): Promise<Site>;
+
+  // Blog content (WordPress import)
+  upsertAuthor(siteId: string, author: Omit<Author, 'siteId' | 'createdAt'> & { createdAt?: string }): Promise<Author>;
+  listAuthors(siteId: string): Promise<Author[]>;
+
+  upsertCategory(siteId: string, category: Omit<Category, 'siteId' | 'createdAt'> & { createdAt?: string }): Promise<Category>;
+  listCategories(siteId: string): Promise<Category[]>;
+
+  upsertTag(siteId: string, tag: Omit<Tag, 'siteId' | 'createdAt'> & { createdAt?: string }): Promise<Tag>;
+  listTags(siteId: string): Promise<Tag[]>;
+
+  upsertMediaAsset(siteId: string, asset: Omit<MediaAsset, 'siteId' | 'createdAt'> & { createdAt?: string }): Promise<MediaAsset>;
+  listMediaAssets(siteId: string): Promise<MediaAsset[]>;
+
+  upsertArticle(siteId: string, article: Omit<Article, 'siteId' | 'createdAt' | 'updatedAt'> & { createdAt?: string; updatedAt?: string }): Promise<Article>;
+  listArticles(siteId: string): Promise<Article[]>;
+  getArticle(siteId: string, articleId: string): Promise<Article | null>;
+
+  upsertComment(siteId: string, comment: Omit<Comment, 'siteId' | 'createdAt'> & { createdAt?: string }): Promise<Comment>;
+  listComments(siteId: string): Promise<Comment[]>;
+
+  createImportJob(siteId: string): Promise<ImportJob>;
+  getImportJob(siteId: string, jobId: string): Promise<ImportJob | null>;
+  updateImportJob(siteId: string, job: ImportJob): Promise<ImportJob>;
+
+  /** Absolute path to site's public media directory */
+  getSitePublicDir(siteId: string): string;
 }
