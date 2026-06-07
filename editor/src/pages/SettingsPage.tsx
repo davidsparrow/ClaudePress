@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, type SiteMeta, type SiteVersion } from '../api';
+import SiteEmailDelivery from '../components/SiteEmailDelivery';
+import ClientAccessInvite from '../components/ClientAccessInvite';
 
 interface Props {
   siteId: string;
@@ -107,14 +109,11 @@ export default function SettingsPage({ siteId }: Props) {
           <p className="dash-page__muted">Default SEO title, meta description, and OpenGraph image — TODO.</p>
         </section>
 
-        <section className="panel settings-card">
-          <h3>Forms / Email</h3>
-          <p className="dash-page__muted">
-            Manage form behavior in <strong>Forms</strong>. Per-site Resend delivery config will live here under Email — TODO (Phase 7).
-          </p>
+        <section className="panel settings-card settings-card--full">
+          <SiteEmailDelivery siteId={siteId} />
         </section>
 
-        <section className="panel settings-card">
+        <section className="panel settings-card settings-card--full">
           <h3>Access</h3>
           <p className="dash-page__muted">Set a client password for site-scoped editor access.</p>
           <form onSubmit={savePassword} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
@@ -127,9 +126,9 @@ export default function SettingsPage({ siteId }: Props) {
             />
             <button type="submit">Save password</button>
           </form>
-          <p className="dash-page__muted" style={{ marginTop: '0.75rem' }}>
-            Client invite email — TODO (Phase 7, moved from Email modal).
-          </p>
+          <div style={{ marginTop: '1.25rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+            <ClientAccessInvite siteId={siteId} />
+          </div>
         </section>
 
         <section className="panel settings-card settings-card--danger">

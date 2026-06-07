@@ -8,7 +8,7 @@ import {
   buildContactFormSnippet,
   buildEditorUrl,
 } from '../email/send.js';
-import { EmailSettingsSchema, InviteEmailSchema, TestEmailSchema } from '../email/validate.js';
+import { EmailSettingsSchema, InviteEmailSchema, TestEmailSchema, validateEmailConfig } from '../email/validate.js';
 import type { SiteEmailConfig } from '../storage/types.js';
 import { routeParam } from '../util/params.js';
 
@@ -28,6 +28,7 @@ function publicEmailSettings(email?: SiteEmailConfig) {
     fromEmail: email.fromEmail,
     fromName: email.fromName,
     notifyEmail: email.notifyEmail,
+    successMessage: email.successMessage,
     hasApiKey: !!email.resendApiKey,
     apiKeyPreview: maskApiKey(email.resendApiKey),
   };
@@ -70,11 +71,20 @@ router.put('/sites/:siteId/email', requireOwner, async (req, res) => {
       ...(parsed.data.fromEmail !== undefined ? { fromEmail: parsed.data.fromEmail } : {}),
       ...(parsed.data.fromName !== undefined ? { fromName: parsed.data.fromName } : {}),
       ...(parsed.data.notifyEmail !== undefined ? { notifyEmail: parsed.data.notifyEmail } : {}),
+      ...(parsed.data.successMessage !== undefined
+        ? { successMessage: parsed.data.successMessage }
+        : {}),
       ...(parsed.data.enabled !== undefined ? { enabled: parsed.data.enabled } : {}),
     };
 
     if (parsed.data.resendApiKey?.trim()) {
       next.resendApiKey = parsed.data.resendApiKey.trim();
+    }
+
+    const configCheck = validateEmailConfig(next);
+    if (!configCheck.ok) {
+      res.status(400).json({ error: configCheck.errors.join(', ') });
+      return;
     }
 
     const meta = await storage.updateSiteMeta(routeParam(req.params.siteId), { email: next });

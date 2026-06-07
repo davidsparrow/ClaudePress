@@ -16,6 +16,8 @@ export interface SiteEmailConfig {
   fromName?: string;
   /** Inbox that receives contact form notifications */
   notifyEmail?: string;
+  /** Plain-text message shown after successful submit (stored; public API uses generic success for now) */
+  successMessage?: string;
   enabled?: boolean;
 }
 

@@ -686,6 +686,50 @@ textarea:focus {
   margin: 0;
 }
 
+.settings-card--full {
+  grid-column: 1 / -1;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  color: var(--accent-hover);
+  background: none;
+}
+
+.forms-status {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.forms-status--ok {
+  color: var(--success);
+}
+
+.forms-status--warn {
+  color: #fbbf24;
+}
+
+.forms-status--muted {
+  color: var(--muted);
+}
+
+.forms-future {
+  opacity: 0.85;
+}
+
+.forms-detail-modal {
+  max-width: 520px;
+}
+
 .settings-card--danger {
   border-color: rgba(255, 107, 107, 0.35);
 }

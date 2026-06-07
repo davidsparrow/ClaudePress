@@ -182,4 +182,47 @@ export const api = {
     request<Array<{ id: string; title: string; slug: string; type: string }>>(
       `/sites/${siteId}/blog/articles`
     ),
+  getEmailSettings: (siteId: string) =>
+    request<{
+      settings: {
+        enabled: boolean;
+        fromEmail?: string;
+        fromName?: string;
+        notifyEmail?: string;
+        successMessage?: string;
+        hasApiKey?: boolean;
+        apiKeyPreview?: string;
+      };
+      editorUrl: string;
+      contactFormSnippet: string;
+    }>(`/sites/${siteId}/email`),
+  updateEmailSettings: (
+    siteId: string,
+    body: {
+      resendApiKey?: string;
+      fromEmail?: string;
+      fromName?: string;
+      notifyEmail?: string;
+      successMessage?: string;
+      enabled?: boolean;
+    }
+  ) =>
+    request<{ settings: { enabled: boolean; notifyEmail?: string; successMessage?: string; hasApiKey?: boolean } }>(
+      `/sites/${siteId}/email`,
+      { method: 'PUT', body: JSON.stringify(body) }
+    ),
+  listSubmissions: (siteId: string) =>
+    request<Array<{ id: string; name: string; email: string; message: string; pagePath?: string; createdAt: string }>>(
+      `/sites/${siteId}/submissions`
+    ),
+  sendTestEmail: (siteId: string, to: string) =>
+    request<{ ok: boolean }>(`/sites/${siteId}/email/test`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  sendClientInvite: (siteId: string, to: string, agencyName?: string) =>
+    request<{ ok: boolean }>(`/sites/${siteId}/email/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ to, agencyName }),
+    }),
 };

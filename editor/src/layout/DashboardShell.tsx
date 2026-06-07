@@ -6,6 +6,7 @@ import Editor from '../components/Editor';
 import Sidebar from './Sidebar';
 import OverviewPage from '../pages/OverviewPage';
 import PagesPage from '../pages/PagesPage';
+import FormsPage from '../pages/FormsPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
 import SettingsPage from '../pages/SettingsPage';
 import AdminPage from '../pages/admin/AdminPage';
@@ -184,10 +185,7 @@ export default function DashboardShell({ onLogout }: Props) {
         );
       case 'forms':
         return (
-          <PlaceholderPage
-            title="PressPal Forms"
-            description="Contact form and submissions inbox (Phase 7)."
-          />
+          <FormsPage siteId={selectedSiteId} siteName={selectedSite?.name ?? 'Site'} />
         );
       case 'seo':
         return (
