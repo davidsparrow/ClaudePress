@@ -130,6 +130,20 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
     }
   }
 
+  async function downloadWordPress() {
+    if (!site?.meta.name) return;
+    setError('');
+    setStatus('Building theme…');
+    try {
+      await api.downloadWordPressTheme(siteId, site.meta.name);
+      setStatus('WordPress theme downloaded');
+      setTimeout(() => setStatus(''), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'WordPress export failed');
+      setStatus('');
+    }
+  }
+
   async function sendChat(e: React.FormEvent) {
     e.preventDefault();
     if (!activePage || !chatInput.trim()) return;
@@ -163,6 +177,9 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
           Snapshot
         </button>
         <button onClick={publishSite}>Publish</button>
+        <button className="secondary" onClick={downloadWordPress}>
+          WordPress
+        </button>
         <button className="secondary" onClick={() => setShowSeo(true)}>
           SEO prompts
         </button>

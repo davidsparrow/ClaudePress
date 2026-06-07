@@ -52,6 +52,15 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
     }
   }
 
+  async function downloadWordPress(siteId: string, siteName: string) {
+    setError('');
+    try {
+      await api.downloadWordPressTheme(siteId, siteName);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'WordPress export failed');
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -127,6 +136,17 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
                     <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{site.domain}</div>
                   )}
                 </div>
+                <button
+                  type="button"
+                  className="secondary"
+                  style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void downloadWordPress(site.id, site.name);
+                  }}
+                >
+                  WordPress
+                </button>
                 <button
                   type="button"
                   className="secondary"

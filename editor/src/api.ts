@@ -77,4 +77,22 @@ export const api = {
       `/sites/${siteId}/pages/${pageId}/chat`,
       { method: 'POST', body: JSON.stringify({ message }) }
     ),
+  downloadWordPressTheme: async (siteId: string, siteName: string) => {
+    const token = getToken();
+    const res = await fetch(`/api/sites/${siteId}/wordpress/download`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(body.error ?? 'Download failed');
+    }
+    const blob = await res.blob();
+    const slug = siteName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `claudepress-${slug}-wordpress-theme.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

@@ -11,6 +11,7 @@ import chatRouter from './api/chat.js';
 import seoPromptsRouter from './api/seo-prompts.js';
 import emailRouter from './api/email.js';
 import publicRouter from './api/public.js';
+import wordpressRouter from './api/wordpress.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api', chatRouter);
 app.use('/api', seoPromptsRouter);
 app.use('/api', emailRouter);
 app.use('/api', publicRouter);
+app.use('/api', wordpressRouter);
 
 /** Ingest a live URL into frozen template + slots */
 app.post('/api/ingest', async (req, res) => {
