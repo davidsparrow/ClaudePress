@@ -32,18 +32,29 @@ export interface ImportJob {
   updatedAt: string;
 }
 
-const TOKEN_KEY = 'claudepress_token';
+const TOKEN_KEY = 'presspal_token';
+const LEGACY_TOKEN_KEY = 'claudepress_token';
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) return token;
+  const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+  if (legacy) {
+    localStorage.setItem(TOKEN_KEY, legacy);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    return legacy;
+  }
+  return null;
 }
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -121,7 +132,7 @@ export const api = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `claudepress-${slug}-wordpress-theme.zip`;
+    a.download = `presspal-${slug}-wordpress-theme.zip`;
     a.click();
     URL.revokeObjectURL(url);
   },

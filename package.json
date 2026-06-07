@@ -1,7 +1,7 @@
 {
-  "name": "claudepress",
+  "name": "presspal",
   "version": "0.1.0",
-  "description": "AI-native client CMS — ingest, edit, publish static sites",
+  "description": "Client-safe CMS for agency-built sites — ingest, edit, validate, and publish static websites.",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",

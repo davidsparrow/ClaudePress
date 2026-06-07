@@ -59,7 +59,7 @@ describe('WordPress export', () => {
 
   it('builds a complete theme file set', () => {
     const theme = buildWordPressTheme(site);
-    expect(theme.themeSlug).toBe('claudepress-acme-corp');
+    expect(theme.themeSlug).toBe('presspal-acme-corp');
     expect(theme.files['style.css']).toContain('Theme Name: Acme Corp');
     expect(theme.files['functions.php']).toContain('claudepress_activate_theme');
     expect(theme.files['inc/slots.json']).toContain('"h1"');

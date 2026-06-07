@@ -48,7 +48,7 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
     if (deploy !== false && process.env.VERCEL_TOKEN) {
       const result = await deployToVercel(bundle.record, bundle.files, {
         token: process.env.VERCEL_TOKEN,
-        projectName: site.meta.domain?.replace(/\./g, '-') ?? `claudepress-${site.meta.id}`,
+        projectName: site.meta.domain?.replace(/\./g, '-') ?? `presspal-${site.meta.id}`,
         teamId: process.env.VERCEL_TEAM_ID,
       });
       deploymentUrl = result.url;

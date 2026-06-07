@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   api,
+  getToken,
   type Site,
   type ContentSlot,
   type SlotChange,
@@ -53,7 +54,7 @@ export default function Editor({ siteId, onBack, onLogout }: Props) {
   useEffect(() => {
     if (!activePage) return;
     fetch(`/api/sites/${siteId}/pages/${activePage.id}/preview`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('claudepress_token')}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => r.text())
       .then(setPreviewHtml)
