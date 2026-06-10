@@ -1,0 +1,21 @@
+Wave 4 — Cloud hosted Sprint 1
+=================================
+
+Master plan: .cursor/plans/freshpress_master_build_55b1227f.plan.md
+Source: ref/freshpress-hosted-instance—prompt.txt Phase 2
+
+Goal:
+Railway packaging, HOSTED=1 validation, provisioning docs.
+
+Scope:
+- railway.toml, src/hosted/validate.ts
+- docs/HOSTED-INSTANCE.md, PROVISION-BUYER.md, BUYER-SETUP.md
+- COMMERCIAL-LICENSE.md
+
+Deferred: provision-buyer.ts (Wave 8), Blob storage
+
+Acceptance:
+- HOSTED=1 without MONGODB_URI fails at boot with clear error
+- npm test && npm run build pass
+
+EOF
