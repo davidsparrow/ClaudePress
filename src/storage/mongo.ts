@@ -29,7 +29,8 @@ export class MongoStorage implements StorageAdapter {
 
   constructor(uri: string) {
     this.client = new MongoClient(uri);
-    this.dbPromise = this.client.connect().then(() => this.client.db('claudepress'));
+    const dbName = process.env.FRESHPRESS_DB_NAME || 'claudepress';
+    this.dbPromise = this.client.connect().then(() => this.client.db(dbName));
   }
 
   private async db(): Promise<Db> {
@@ -59,7 +60,7 @@ export class MongoStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl' | 'styleGuideId'>>
   ): Promise<SiteMeta> {
     const db = await this.db();
     const updatedAt = new Date().toISOString();

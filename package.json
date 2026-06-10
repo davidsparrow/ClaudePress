@@ -1,5 +1,5 @@
 {
-  "name": "presspal",
+  "name": "freshpress",
   "version": "0.1.0",
   "description": "Client-safe CMS for agency-built sites — ingest, edit, validate, and publish static websites.",
   "type": "module",

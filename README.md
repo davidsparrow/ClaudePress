@@ -1,8 +1,6 @@
-# PressPal CMS
+# FreshPress CMS
 
 Client-safe CMS for agency-built sites — ingest, edit, validate, and publish static websites.
-
-> **Product direction:** Rebranding to **FreshPress CMS**. Deployment architecture below uses FreshPress naming for the target stack; package names may still read `presspal` until the rebrand phase lands.
 
 ## Features
 
@@ -20,7 +18,7 @@ Client-safe CMS for agency-built sites — ingest, edit, validate, and publish s
 |------|-----|-------|---------|
 | **Vendor** | You (FreshPress seller) | — | Ship updates; optionally host CMS for buyers |
 | **Agency owner** | Your buyer | Owner + `MASTER_KEY` | Build sites, settings, client passwords, invites |
-| **End client** | Buyer’s customer | Client + site ID + site password | Edit content slots for one site; design stays locked |
+| **End client** | Buyer's customer | Client + site ID + site password | Edit content slots for one site; design stays locked |
 
 End clients use `{APP_URL}/editor/?site={siteId}`. The CMS must be **always-on at a public URL** — a laptop-only install does not work for remote client editing.
 
@@ -37,7 +35,7 @@ FreshPress splits **where you edit** (CMS) from **what visitors see** (published
                              │ publish (VERCEL_TOKEN)
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Buyer’s Vercel — live client websites (static HTML)             │
+│  Buyer's Vercel — live client websites (static HTML)             │
 │  Public visitors; pages stay up if CMS is briefly down           │
 └────────────────────────────┬────────────────────────────────────┘
                              │ contact form POST
@@ -50,8 +48,8 @@ FreshPress splits **where you edit** (CMS) from **what visitors see** (published
 | CMS app | **Railway** or **Fly.io** | Editor, API, auth, form handler |
 | CMS data | **MongoDB Atlas** | Sites, pages, versions, passwords, form inbox, email config |
 | CMS files | **Volume** on Railway/Fly (`DATA_DIR`) | Publish bundles, WordPress media (until object storage) |
-| Live sites | **Buyer’s Vercel** | Static HTML for end-customer domains |
-| Email | **Buyer’s Resend** | Per-site API keys (BYOK) |
+| Live sites | **Buyer's Vercel** | Static HTML for end-customer domains |
+| Email | **Buyer's Resend** | Per-site API keys (BYOK) |
 
 **Vercel is not the CMS host** — it is the publish target for client websites. Railway/Fly fits the current Express app, disk snapshots, and long imports better than serverless.
 
@@ -87,7 +85,7 @@ npm run dev:editor   # Editor on http://localhost:5173 (proxies /api)
 
 **Who:** Agency runs their own always-on CMS so staff and **end clients** can edit from anywhere.
 
-**Stack:** Railway or Fly + MongoDB Atlas + volume + buyer’s Vercel for published sites.
+**Stack:** Railway or Fly + MongoDB Atlas + volume + buyer's Vercel for published sites.
 
 | Step | Action |
 |------|--------|
@@ -95,7 +93,7 @@ npm run dev:editor   # Editor on http://localhost:5173 (proxies /api)
 | 2 | Deploy repo to **Railway** or **Fly.io** (Node 20, `npm run build`, `npm start`) |
 | 3 | Mount persistent volume → set `DATA_DIR=/data` |
 | 4 | Set env: `HOSTED=1`, `MASTER_KEY`, `MONGODB_URI`, `APP_URL=https://cms.agency.com` |
-| 5 | Set `VERCEL_TOKEN` (agency’s) for publish-to-client-sites |
+| 5 | Set `VERCEL_TOKEN` (agency's) for publish-to-client-sites |
 | 6 | Owner logs in → create site → set client password → send invite |
 
 **Handoff to end client:** `{APP_URL}/editor/?site={siteId}` + site password (see Site Settings → Access).
@@ -128,9 +126,9 @@ Provisioning playbook: `docs/PROVISION-BUYER.md` (added in hosted sprint).
 |------|-------------------|
 | Editor URL | `{APP_URL}/editor/?site={siteId}` |
 | Login | Client mode + site ID + password |
-| Hosting | Nothing — uses agency’s CMS URL |
+| Hosting | Nothing — uses agency's CMS URL |
 
-Clients do not deploy FreshPress. Published **visitor-facing** site lives on the agency’s Vercel project.
+Clients do not deploy FreshPress. Published **visitor-facing** site lives on the agency's Vercel project.
 
 ---
 
@@ -174,21 +172,23 @@ npm start
 | `APP_URL` | Public CMS URL — editor invites, contact form API |
 | `DATA_DIR` | Storage root (default `./data`; use `/data` on Railway/Fly volume) |
 | `MONGODB_URI` | MongoDB Atlas — **required** for hosted (`HOSTED=1`) |
+| `FRESHPRESS_DB_NAME` | MongoDB database name (default `claudepress` for legacy installs) |
 | `HOSTED` | Set to `1` on Railway/Fly production CMS instances |
-| `VERCEL_TOKEN` | Deploy published client sites to buyer’s Vercel |
+| `VERCEL_TOKEN` | Deploy published client sites to buyer's Vercel |
 | `VERCEL_TEAM_ID` | Optional Vercel team |
 
 Per-site Resend keys are configured in the dashboard (Site Settings → Email), not only in env.
 
 ## Packages
 
-- `presspal` — Express API and core logic (root; → `freshpress` after rebrand)
-- `presspal-editor` — React/Vite dashboard and editor (`/editor`)
+- `freshpress` — Express API and core logic (root)
+- `freshpress-editor` — React/Vite dashboard and editor (`/editor`)
 
 ## Implementation prompts
 
-- Dashboard architecture: `docs/presspal-dashboard-architecture.md`
-- Rebrand + hosted CMS (Railway/Fly): `ref/freshpress-hosted-instance—prompt.txt`
+- Dashboard architecture: `docs/freshpress-dashboard-architecture.md`
+- Master build waves: `ref/prompts/`
+- Hosted CMS (Railway/Fly): `ref/freshpress-hosted-instance—prompt.txt`
 
 ## Tests
 
