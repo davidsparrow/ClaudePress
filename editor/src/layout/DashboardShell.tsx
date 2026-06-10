@@ -11,7 +11,12 @@ import MediaPage from '../pages/MediaPage';
 import SnapshotsPage from '../pages/SnapshotsPage';
 import PlaceholderPage from '../pages/PlaceholderPage';
 import SettingsPage from '../pages/SettingsPage';
+import BlogPage from '../pages/BlogPage';
+import SeoPage from '../pages/SeoPage';
+import CampaignsPage from '../pages/CampaignsPage';
 import AdminPage from '../pages/admin/AdminPage';
+import AdminIntegrationsPage from '../pages/admin/AdminIntegrationsPage';
+import AdminAiProvidersPage from '../pages/admin/AdminAiProvidersPage';
 
 interface Props {
   onLogout: () => void;
@@ -90,7 +95,7 @@ export default function DashboardShell({ onLogout }: Props) {
       },
       users: {
         title: 'Users',
-        description: 'Admin and team users for this PressPal workspace.',
+        description: 'Admin and team users for this FreshPress workspace.',
         body: <p>Team user management — TODO.</p>,
       },
       'client-access': {
@@ -105,8 +110,8 @@ export default function DashboardShell({ onLogout }: Props) {
       },
       integrations: {
         title: 'Integrations',
-        description: 'Vercel, TinyPNG, Cloudinary, imgix, and other providers.',
-        body: <p>Integration placeholders — TODO.</p>,
+        description: 'Vercel, Firecrawl, On-Page.ai, and detection providers.',
+        body: <AdminIntegrationsPage />,
       },
       email: {
         title: 'Email / Resend',
@@ -124,8 +129,8 @@ export default function DashboardShell({ onLogout }: Props) {
       },
       'ai-providers': {
         title: 'AI Providers',
-        description: 'Claude, OpenAI, Gemini BYOK placeholders.',
-        body: <p>AI provider configuration — TODO.</p>,
+        description: 'OpenRouter and Anthropic BYOK for editor and blog AI.',
+        body: <AdminAiProvidersPage />,
       },
       billing: {
         title: 'Billing',
@@ -184,13 +189,12 @@ export default function DashboardShell({ onLogout }: Props) {
         return (
           <FormsPage siteId={selectedSiteId} siteName={selectedSite?.name ?? 'Site'} />
         );
+      case 'blog':
+        return <BlogPage siteId={selectedSiteId} />;
+      case 'campaigns':
+        return <CampaignsPage siteId={selectedSiteId} />;
       case 'seo':
-        return (
-          <PlaceholderPage
-            title="SEO"
-            description="Page SEO fields and React SEO prompts (Phase 10)."
-          />
-        );
+        return <SeoPage siteId={selectedSiteId} />;
       case 'publishes':
         return (
           <PlaceholderPage
@@ -242,8 +246,8 @@ export default function DashboardShell({ onLogout }: Props) {
             {editorFocus
               ? `Editing — ${selectedSite?.name ?? 'Site'}`
               : sidebarMode === 'admin'
-                ? 'PressPal Admin'
-                : 'PressPal Dashboard'}
+                ? 'FreshPress Admin'
+                : 'FreshPress Dashboard'}
           </h1>
           <div className="spacer" />
           {editorFocus && (

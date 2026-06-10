@@ -1,0 +1,16 @@
+Wave 8 — Hosted ops at scale
+=============================
+
+Goal:
+provision-buyer.ts, instance registry, RELEASE-HOSTED.md, admin export.
+
+Scope:
+- scripts/provision-buyer.ts
+- data/vendor/instance-registry.json (runtime, gitignored pattern)
+- docs/RELEASE-HOSTED.md
+- GET /api/admin/export
+
+Acceptance:
+- Script prints handoff packet; export endpoint returns sites JSON
+
+EOF
