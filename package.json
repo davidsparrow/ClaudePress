@@ -1,7 +1,7 @@
 {
-  "name": "claudepress",
+  "name": "presspal",
   "version": "0.1.0",
-  "description": "AI-native client CMS — ingest, edit, publish static sites",
+  "description": "Client-safe CMS for agency-built sites — ingest, edit, validate, and publish static websites.",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -23,7 +23,7 @@
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "fast-xml-parser": "^5.8.0",
-    "mongodb": "^6.13.0",
+    "mongodb": "^6.21.0",
     "multer": "^2.1.1",
     "nanoid": "^5.1.0",
     "react": "^19.2.7",

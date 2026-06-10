@@ -13,7 +13,7 @@ export interface SendResult {
 }
 
 function fromAddress(config: SiteEmailConfig): string {
-  const name = config.fromName?.trim() || 'ClaudePress';
+  const name = config.fromName?.trim() || 'PressPal';
   const email = config.fromEmail?.trim();
   if (!email) throw new Error('From email is required');
   return `${name} <${email}>`;
@@ -41,7 +41,7 @@ export async function sendTestEmail(
   const { data, error } = await resend.emails.send({
     from: fromAddress(cfg),
     to,
-    subject: `ClaudePress email test — ${siteName}`,
+    subject: `PressPal email test — ${siteName}`,
     html,
   });
 
@@ -114,7 +114,7 @@ export function maskApiKey(key?: string): string | undefined {
 
 export function buildContactFormSnippet(siteId: string, appUrl: string): string {
   const action = `${appUrl.replace(/\/$/, '')}/api/public/sites/${siteId}/contact`;
-  return `<!-- ClaudePress contact form — posts to your ClaudePress server -->
+  return `<!-- PressPal contact form — posts to your PressPal server -->
 <form action="${action}" method="POST">
   <input type="hidden" name="_format" value="json" />
   <label>Name <input type="text" name="name" required /></label>

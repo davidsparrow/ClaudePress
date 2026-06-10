@@ -11,8 +11,45 @@ export interface PublishRecord {
   createdAt: string;
   pageCount: number;
   bundlePath: string;
+  /** Content version captured immediately before this publish */
+  prePublishVersionId?: string;
   deploymentUrl?: string;
   vercelDeploymentId?: string;
+}
+
+export interface VersionLink {
+  id: string;
+  label: string;
+  publishId?: string;
+}
+
+export type RollbackResolveResult =
+  | { ok: true; versionId: string }
+  | { ok: false; error: string };
+
+/** Resolve the content version to restore for a publish record (new links + legacy fallbacks). */
+export function resolveRollbackVersionId(
+  record: Pick<PublishRecord, 'id' | 'prePublishVersionId'>,
+  versions: VersionLink[]
+): RollbackResolveResult {
+  if (record.prePublishVersionId) {
+    const linked = versions.find((v) => v.id === record.prePublishVersionId);
+    if (!linked) {
+      return { ok: false, error: 'Linked content snapshot not found for this publish' };
+    }
+    if (linked.publishId && linked.publishId !== record.id) {
+      return { ok: false, error: 'Publish and content snapshot link mismatch' };
+    }
+    return { ok: true, versionId: linked.id };
+  }
+
+  const byPublishId = versions.find((v) => v.publishId === record.id);
+  if (byPublishId) return { ok: true, versionId: byPublishId.id };
+
+  const byLabel = versions.find((v) => v.label === `Pre-publish ${record.id}`);
+  if (byLabel) return { ok: true, versionId: byLabel.id };
+
+  return { ok: false, error: 'No linked content snapshot for this publish' };
 }
 
 export interface PublishBundle {

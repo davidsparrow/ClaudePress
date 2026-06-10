@@ -39,7 +39,7 @@ export default function Login({ onLogin }: Props) {
   return (
     <div className="login-page">
       <div className="panel">
-        <h1>ClaudePress</h1>
+        <h1>PressPal</h1>
         <p>Edit your site content — design stays locked.</p>
 
         {error && <div className="error-banner">{error}</div>}

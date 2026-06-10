@@ -1,0 +1,87 @@
+FreshPress Licensing & Distribution
+
+The short answer: yes, you can sell it this way — private repo as your source of truth, buyers clone and run locally as agency admins, restrictions on resale/sharing enforced by license + contract, not by GitHub privacy alone. Your architecture already fits that model; your legal/distribution layer is not set up yet.
+This is product/architecture guidance, not legal advice. Have a lawyer review your EULA before you sell.
+
+Can you keep the repo private and share clones?
+Yes. That is a common model for commercial self-hosted software:
+You keep
+Buyer gets
+Private GitHub repo (your canonical source)
+Clone access (collaborator, org member, or release zip)
+Control over who can pull updates
+A full copy on their machine
+Updates via new commits/tags
+Right to use for their agency, not to resell/share source
+GitHub privacy controls who can access the repo today. It does not stop someone from copying code they already cloned. That is why you need a proprietary license / EULA at purchase.
+
+Is the codebase built for “agency admin on their own machine”?
+Mostly yes. PressPal is self-hosted, not a multi-tenant SaaS you operate for them.
+Aligned with your model:
+	•	Local-first runtime — npm run dev / npm start, API + editor on their machine (README.md).
+	•	Their data stays local — DATA_DIR=./data (filesystem) or optional MONGODB_URI on their infra.
+	•	Agency admin = Owner — MASTER_KEY in .env is the owner key; login has Owner vs Client modes.
+	•	Clients are scoped — per-site client passwords; clients cannot do owner-only actions.
+	•	BYOK integrations — Resend, Vercel, AI keys are env/site config on their accounts, not yours.
+	•	No license server / phone-home — nothing in the code checks a central PressPal entitlement (good for privacy; enforcement is legal, not technical).
+Roles map cleanly to your story:
+Buyer (agency)  →  Owner login + MASTER_KEY  →  full dashboard, all sites
+Client end-user →  Client login + site password →  edit one site only
+You (vendor)    →  private repo + updates       →  not in their runtime
+
+So technically: buyer runs PressPal on their machine, manages client sites, you are not hosting their CMS.
+
+What is not set up yet (important gaps)
+Gap
+Risk
+No LICENSE / EULA file
+Buyers (and courts) may assume they can do more than you intend
+No license field in root package.json
+Ambiguous ownership/terms
+No commercial terms in README
+No clear “internal use only / no redistribution”
+No copyright headers
+Weaker chain of ownership in source
+No buyer onboarding doc
+“Clone, install, set MASTER_KEY, your license scope”
+No entitlement system
+Fine for v1; you cannot remotely revoke a clone they already have
+Also: "private": true in editor/package.json only means not published to npm — it is not copyright protection.
+
+Can the license stop resale/sharing of copied source?
+Contractually, yes (with a proper proprietary EULA). Technically, no — once they have the repo, they can zip it. Standard for source sales.
+Your license should spell out, at minimum:
+	1	Grant — non-exclusive, non-transferable right to use for their agency’s client work.
+	2	Allowed — run locally, modify for their own use, deploy client sites.
+	3	Forbidden — resell, sublicense, publish source, share repo access, white-label as a competing product.
+	4	Updates — access to your private repo/tags while subscription/active.
+	5	Termination — what happens when access is revoked (they keep their copy but lose update rights; ongoing use may be limited depending on lawyer’s wording).
+	6	Your IP — you retain all rights; they get a license, not ownership.
+
+Practical GitHub delivery options
+	1	Private repo + org member (Read) — best for ongoing updates; revoke org access when they churn (they still keep old clone).
+	2	Private repo + collaborator — simpler; on personal repos, collaborators often have write access unless you use an org with Read role.
+	3	Release zip per purchase — simpler legally/logistically for v1; harder to deliver seamless updates.
+	4	Separate “distribution” repo — your dev repo stays private; buyers get access to a release mirror with tags only.
+For your model, private canonical repo + buyer Read access (or tagged releases) matches what you described.
+
+Bottom line
+Question
+Answer
+Keep truth on private GitHub?
+Yes
+Buyer clones and runs as agency admin locally?
+Yes — architecture supports this today
+Restrict sell/share of source?
+Yes — via LICENSE/EULA + purchase agreement, not repo privacy alone
+Is the repo “set up for sale” today?
+Architecturally yes; legally/documentation no
+
+Recommended next steps (before first sale)
+	1	Add LICENSE or COMMERCIAL-LICENSE.md (proprietary, not MIT).
+	2	Add docs/BUYER-SETUP.md — clone, .env, MASTER_KEY, first site, what they may/may not do.
+	3	Add a short License & use section to README.md.
+	4	Use a purchase flow (Gumroad, Lemon Squeezy, etc.) that requires accepting the EULA.
+	5	Decide delivery: GitHub org Read vs release zip.
+	6	Lawyer review of EULA for your jurisdiction and price point.
+If you want, I can draft COMMERCIAL-LICENSE.md, docs/BUYER-SETUP.md, and README license section in the repo — say the word and whether you prefer subscription + repo access or one-time + zip.

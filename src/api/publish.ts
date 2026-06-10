@@ -6,8 +6,9 @@ import {
   getPublishBundle,
   deployToVercel,
   updatePublishRecord,
+  resolveRollbackVersionId,
 } from '../publish/index.js';
-import { requireSiteAccess, ownerOnly } from '../auth/middleware.js';
+import { requireSiteAccess } from '../auth/middleware.js';
 import { routeParam } from '../util/params.js';
 
 const router = Router();
@@ -33,14 +34,14 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
       return;
     }
 
-    const bundle = await savePublishBundle(
-      routeParam(req.params.siteId),
-      site.pages,
-      label ?? `Publish ${new Date().toISOString()}`
-    );
+    const siteId = routeParam(req.params.siteId);
+    const bundle = await savePublishBundle(siteId, site.pages, label ?? `Publish ${new Date().toISOString()}`);
 
-    // Auto-snapshot before publish
-    await storage.createVersion(routeParam(req.params.siteId), `Pre-publish ${bundle.record.id}`);
+    const prePublishVersion = await storage.createVersion(siteId, `Pre-publish ${bundle.record.id}`, {
+      publishId: bundle.record.id,
+    });
+    bundle.record.prePublishVersionId = prePublishVersion.id;
+    await updatePublishRecord(bundle.record);
 
     let deploymentUrl: string | undefined;
     let vercelDeploymentId: string | undefined;
@@ -48,7 +49,7 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
     if (deploy !== false && process.env.VERCEL_TOKEN) {
       const result = await deployToVercel(bundle.record, bundle.files, {
         token: process.env.VERCEL_TOKEN,
-        projectName: site.meta.domain?.replace(/\./g, '-') ?? `claudepress-${site.meta.id}`,
+        projectName: site.meta.domain?.replace(/\./g, '-') ?? `presspal-${site.meta.id}`,
         teamId: process.env.VERCEL_TEAM_ID,
       });
       deploymentUrl = result.url;
@@ -99,29 +100,31 @@ router.get('/sites/:siteId/publishes/:publishId/preview/*', siteAuth, async (req
   res.type('html').send(html);
 });
 
-/** Roll back site content from a publish snapshot */
-router.post('/sites/:siteId/publishes/:publishId/rollback', siteAuth, ownerOnly, async (req, res) => {
+/** Roll back site content from a publish snapshot (validated via linked version IDs) */
+router.post('/sites/:siteId/publishes/:publishId/rollback', siteAuth, async (req, res) => {
   try {
-    const bundle = await getPublishBundle(routeParam(req.params.siteId), routeParam(req.params.publishId));
+    const siteId = routeParam(req.params.siteId);
+    const publishId = routeParam(req.params.publishId);
+    const bundle = await getPublishBundle(siteId, publishId);
     if (!bundle) {
       res.status(404).json({ error: 'Publish not found' });
       return;
     }
 
     const storage = await getStorage();
-    const site = await storage.getSite(routeParam(req.params.siteId));
-    if (!site) {
-      res.status(404).json({ error: 'Site not found' });
+    const versions = await storage.listVersions(siteId);
+    const resolved = resolveRollbackVersionId(bundle.record, versions);
+    if (!resolved.ok) {
+      res.status(404).json({ error: resolved.error });
       return;
     }
 
-    // Restore from the version that matches publish time isn't stored in bundle directly,
-    // so we use version restore API — publish already creates pre-publish version.
-    // Here we re-ingest from bundle HTML is not ideal; instead restore matching version.
+    const site = await storage.restoreVersion(siteId, resolved.versionId);
     res.json({
       ok: true,
-      message: 'Use POST /versions/:versionId/restore to roll back content, or re-publish an older snapshot.',
       publish: bundle.record,
+      versionId: resolved.versionId,
+      site,
     });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Rollback failed' });

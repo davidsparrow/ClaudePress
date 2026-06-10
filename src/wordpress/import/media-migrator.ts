@@ -79,7 +79,7 @@ export class MediaMigrator {
 
     try {
       const response = await fetch(url, {
-        headers: { 'User-Agent': 'ClaudePress-Import/1.0' },
+        headers: { 'User-Agent': 'PressPal-Import/1.0' },
         signal: AbortSignal.timeout(30_000),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

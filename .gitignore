@@ -2,6 +2,7 @@ node_modules/
 dist/
 data/
 .env
+ref/MongoDB_connection.txt
 *.log
 .DS_Store
 *.tsbuildinfo

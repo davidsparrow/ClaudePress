@@ -122,7 +122,7 @@ app.get('/editor/*', (_req, res) => {
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`ClaudePress API listening on http://localhost:${PORT}`);
+    console.log(`PressPal API listening on http://localhost:${PORT}`);
   });
 }
 

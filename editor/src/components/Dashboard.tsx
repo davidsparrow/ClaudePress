@@ -65,7 +65,7 @@ export default function Dashboard({ onOpenSite, onLogout }: Props) {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <h1>ClaudePress Dashboard</h1>
+        <h1>PressPal Dashboard</h1>
         <div className="spacer" />
         <button className="secondary" onClick={() => setShowSeo(true)}>
           SEO prompts

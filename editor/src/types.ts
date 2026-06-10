@@ -47,4 +47,5 @@ export interface SiteVersion {
   id: string;
   label: string;
   createdAt: string;
+  publishId?: string;
 }

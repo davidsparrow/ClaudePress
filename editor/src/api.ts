@@ -32,18 +32,51 @@ export interface ImportJob {
   updatedAt: string;
 }
 
-const TOKEN_KEY = 'claudepress_token';
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  publicPath: string;
+  relativePath: string;
+  mimeType?: string;
+  sourceUrl?: string;
+  wpPostId?: number;
+  createdAt: string;
+}
+
+export interface PublishRecord {
+  id: string;
+  siteId: string;
+  label: string;
+  createdAt: string;
+  pageCount: number;
+  prePublishVersionId?: string;
+  deploymentUrl?: string;
+  vercelDeploymentId?: string;
+}
+
+const TOKEN_KEY = 'presspal_token';
+const LEGACY_TOKEN_KEY = 'claudepress_token';
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) return token;
+  const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+  if (legacy) {
+    localStorage.setItem(TOKEN_KEY, legacy);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    return legacy;
+  }
+  return null;
 }
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -98,9 +131,11 @@ export const api = {
       `/sites/${siteId}/publish`,
       { method: 'POST', body: JSON.stringify({ label, deploy }) }
     ),
-  listPublishes: (siteId: string) =>
-    request<Array<{ id: string; label: string; createdAt: string; deploymentUrl?: string }>>(
-      `/sites/${siteId}/publishes`
+  listPublishes: (siteId: string) => request<PublishRecord[]>(`/sites/${siteId}/publishes`),
+  rollbackPublish: (siteId: string, publishId: string) =>
+    request<{ ok: boolean; versionId: string; publish: PublishRecord }>(
+      `/sites/${siteId}/publishes/${publishId}/rollback`,
+      { method: 'POST' }
     ),
   chat: (siteId: string, pageId: string, message: string) =>
     request<{ explanation: string; html: string; page: SitePage }>(
@@ -121,7 +156,7 @@ export const api = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `claudepress-${slug}-wordpress-theme.zip`;
+    a.download = `presspal-${slug}-wordpress-theme.zip`;
     a.click();
     URL.revokeObjectURL(url);
   },
@@ -171,4 +206,48 @@ export const api = {
     request<Array<{ id: string; title: string; slug: string; type: string }>>(
       `/sites/${siteId}/blog/articles`
     ),
+  getEmailSettings: (siteId: string) =>
+    request<{
+      settings: {
+        enabled: boolean;
+        fromEmail?: string;
+        fromName?: string;
+        notifyEmail?: string;
+        successMessage?: string;
+        hasApiKey?: boolean;
+        apiKeyPreview?: string;
+      };
+      editorUrl: string;
+      contactFormSnippet: string;
+    }>(`/sites/${siteId}/email`),
+  updateEmailSettings: (
+    siteId: string,
+    body: {
+      resendApiKey?: string;
+      fromEmail?: string;
+      fromName?: string;
+      notifyEmail?: string;
+      successMessage?: string;
+      enabled?: boolean;
+    }
+  ) =>
+    request<{ settings: { enabled: boolean; notifyEmail?: string; successMessage?: string; hasApiKey?: boolean } }>(
+      `/sites/${siteId}/email`,
+      { method: 'PUT', body: JSON.stringify(body) }
+    ),
+  listSubmissions: (siteId: string) =>
+    request<Array<{ id: string; name: string; email: string; message: string; pagePath?: string; createdAt: string }>>(
+      `/sites/${siteId}/submissions`
+    ),
+  sendTestEmail: (siteId: string, to: string) =>
+    request<{ ok: boolean }>(`/sites/${siteId}/email/test`, {
+      method: 'POST',
+      body: JSON.stringify({ to }),
+    }),
+  sendClientInvite: (siteId: string, to: string, agencyName?: string) =>
+    request<{ ok: boolean }>(`/sites/${siteId}/email/invite`, {
+      method: 'POST',
+      body: JSON.stringify({ to, agencyName }),
+    }),
+  listMedia: (siteId: string) => request<MediaAsset[]>(`/sites/${siteId}/media`),
 };

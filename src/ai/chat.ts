@@ -99,7 +99,7 @@ async function callOpenRouter(req: ChatRequest, apiKey: string): Promise<ChatRes
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': process.env.APP_URL ?? 'http://localhost:3001',
-      'X-Title': 'ClaudePress',
+      'X-Title': 'PressPal',
     },
     body: JSON.stringify({
       model,

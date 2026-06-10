@@ -194,6 +194,30 @@ router.delete('/sites/:siteId/pages/:pageId', requireOwner, async (req, res) => 
   res.status(204).send();
 });
 
+// ── Media (read-only — WordPress import assets) ────────────────
+
+router.get('/sites/:siteId/media', siteAuth, async (req, res) => {
+  const storage = await getStorage();
+  const site = await storage.getSite(routeParam(req.params.siteId));
+  if (!site) {
+    res.status(404).json({ error: 'Site not found' });
+    return;
+  }
+  const assets = await storage.listMediaAssets(routeParam(req.params.siteId));
+  res.json(
+    assets.map(({ siteId: _, ...asset }) => ({
+      id: asset.id,
+      filename: asset.filename,
+      publicPath: asset.publicPath,
+      relativePath: asset.relativePath,
+      mimeType: asset.mimeType,
+      sourceUrl: asset.sourceUrl,
+      wpPostId: asset.wpPostId,
+      createdAt: asset.createdAt,
+    }))
+  );
+});
+
 // ── Versions ───────────────────────────────────────────────────
 
 router.get('/sites/:siteId/versions', siteAuth, async (req, res) => {

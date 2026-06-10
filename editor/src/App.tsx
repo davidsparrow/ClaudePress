@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getToken, setToken, clearToken } from './api';
+import { DashboardProvider } from './context/DashboardContext';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard';
+import DashboardShell from './layout/DashboardShell';
 import Editor from './components/Editor';
 
 type View =
@@ -70,10 +71,9 @@ export default function App() {
 
   if (view.kind === 'dashboard') {
     return (
-      <Dashboard
-        onOpenSite={(siteId) => setView({ kind: 'editor', siteId })}
-        onLogout={handleLogout}
-      />
+      <DashboardProvider>
+        <DashboardShell onLogout={handleLogout} />
+      </DashboardProvider>
     );
   }
 

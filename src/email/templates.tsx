@@ -37,7 +37,7 @@ export function ClientInviteEmail({ siteName, editorUrl, agencyName }: ClientInv
           </Section>
           <Text style={muted}>Or copy this link: {editorUrl}</Text>
           <Hr style={hr} />
-          <Text style={muted}>Powered by ClaudePress</Text>
+          <Text style={muted}>Powered by PressPal</Text>
         </Container>
       </Body>
     </Html>
@@ -93,7 +93,7 @@ export function TestEmail({ siteName }: TestEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>ClaudePress email test for {siteName}</Preview>
+      <Preview>PressPal email test for {siteName}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Email is working</Heading>
