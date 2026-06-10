@@ -9,6 +9,10 @@ import {
   resolveRollbackVersionId,
 } from '../publish/index.js';
 import { requireSiteAccess } from '../auth/middleware.js';
+import { resolveVercelCredentials } from '../integrations/resolve.js';
+import { getBlogSiloStore } from '../storage/blog-silo.js';
+import { getStyleGuideStore } from '../storage/style-guides.js';
+import { renderBlogBundle } from '../blog/render.js';
 import { routeParam } from '../util/params.js';
 
 const router = Router();
@@ -35,7 +39,14 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
     }
 
     const siteId = routeParam(req.params.siteId);
-    const bundle = await savePublishBundle(siteId, site.pages, label ?? `Publish ${new Date().toISOString()}`);
+    const siloStore = await getBlogSiloStore();
+    const styleStore = await getStyleGuideStore();
+    const silos = await siloStore.listSilos(siteId);
+    const guide = await styleStore.get(siteId);
+    const siteUrl = site.meta.domain ? `https://${site.meta.domain}` : process.env.APP_URL ?? 'https://example.com';
+    const blogFiles = renderBlogBundle(silos, { siteUrl, guide });
+
+    const bundle = await savePublishBundle(siteId, site.pages, label ?? `Publish ${new Date().toISOString()}`, blogFiles);
 
     const prePublishVersion = await storage.createVersion(siteId, `Pre-publish ${bundle.record.id}`, {
       publishId: bundle.record.id,
@@ -46,11 +57,12 @@ router.post('/sites/:siteId/publish', siteAuth, async (req, res) => {
     let deploymentUrl: string | undefined;
     let vercelDeploymentId: string | undefined;
 
-    if (deploy !== false && process.env.VERCEL_TOKEN) {
+    const vercel = await resolveVercelCredentials();
+    if (deploy !== false && vercel.token) {
       const result = await deployToVercel(bundle.record, bundle.files, {
-        token: process.env.VERCEL_TOKEN,
-        projectName: site.meta.domain?.replace(/\./g, '-') ?? `presspal-${site.meta.id}`,
-        teamId: process.env.VERCEL_TEAM_ID,
+        token: vercel.token,
+        projectName: site.meta.domain?.replace(/\./g, '-') ?? `freshpress-${site.meta.id}`,
+        teamId: vercel.teamId ?? undefined,
       });
       deploymentUrl = result.url;
       vercelDeploymentId = result.deploymentId;
