@@ -1,0 +1,13 @@
+Wave 9 — Self-hosted agency path
+=================================
+
+Goal:
+docs/SELF-HOSTED-AGENCY.md for Level 2 buyers.
+
+Scope:
+- Document parity with HOSTED-INSTANCE.md
+- Clarify vendor vs agency ops
+
+No code fork required.
+
+EOF
