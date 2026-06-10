@@ -1,0 +1,218 @@
+Use this file to start a NEW Cursor chat thread.
+
+Repo: davidsparrow/ClaudePress (branch: rebrand-architecture or main)
+
+Architecture reference (final choices — read before Phase 2+):
+  README.md → “Deployment by user level”
+  ref/freshpress-hosted-instance—prompt.txt (this file)
+
+Legacy plan (Vercel-as-CMS — superseded for CMS hosting):
+  /Users/davidsparrow/.cursor/plans/hosted_instance_roadmap_f846ff9a.plan.md
+  Use that plan for Sprint 2 ops ideas only; CMS host is Railway/Fly, not Vercel.
+
+Work in three phases. Complete Phase 1 fully before Phase 2; Phase 3 after Sprint 1 exit criteria.
+Make small safe commits. Run npm test and npm run build after each phase.
+
+
+══════════════════════════════════════════════════════════════════
+FINAL ARCHITECTURE (target — do not contradict in later phases)
+══════════════════════════════════════════════════════════════════
+
+Three roles:
+  Vendor (you)     → ship/host FreshPress, private source repo
+  Agency buyer     → Owner login (MASTER_KEY), builds sites, invites end clients
+  End client       → Client login (site ID + site password), edits one site only
+
+Platform split:
+  CMS (API + /editor)     → Railway or Fly.io (one app per agency buyer when hosted)
+  CMS data                → MongoDB Atlas (one database per agency, e.g. freshpress_acme)
+  CMS files (interim)     → Railway/Fly volume for DATA_DIR (publishes + wp media) until Blob migration
+  Live client websites    → Buyer’s Vercel (static HTML via publish + VERCEL_TOKEN)
+  Contact forms           → POST to CMS API (APP_URL) → buyer’s Resend (BYOK per site)
+
+Why NOT Vercel for CMS:
+  Current code uses long-running Express, local/volume disk for publishes and media, and
+  long WordPress imports. Railway/Fly match the codebase with minimal refactor.
+
+Auth (today — no user DB yet):
+  Agency owner  → MASTER_KEY in env on CMS instance
+  End client    → clientPasswordHash per site in Mongo; invite link APP_URL/editor/?site={id}
+
+Critical product rule:
+  CMS must be always-on at a public APP_URL so end clients can edit. A laptop-only CMS does NOT work
+  for client editing unless tunneled 24/7.
+
+
+══════════════════════════════════════════════════════════════════
+PHASE 1 — Rebrand PressPal to FreshPress (do this FIRST)
+══════════════════════════════════════════════════════════════════
+
+You are working in my existing repo: davidsparrow/ClaudePress.
+
+Goal:
+Refactor product branding from PressPal / PressPal CMS to FreshPress / FreshPress CMS
+without changing core behavior.
+
+Important:
+- Do not rewrite the app from scratch.
+- Preserve ingest, Guardian, editor, publish, email, WordPress import, SEO prompts,
+  dashboard (Sites Mode + Admin Mode), Forms, Media, Snapshots, and all existing APIs.
+- Make small safe commits/changes.
+- Run typecheck/build/tests after changes.
+
+Tasks:
+1. Rename visible product branding:
+   - PressPal → FreshPress
+   - PressPal CMS → FreshPress CMS
+   - presspal → freshpress where appropriate (package names, localStorage keys, etc.)
+   - PressPal-Ingest/1.0 → FreshPress-Ingest/1.0 (if present)
+   - PressPal Forms → FreshPress Forms
+2. Update package metadata:
+   - Root package name: presspal → freshpress
+   - Editor package name: presspal-editor → freshpress-editor
+3. Update README (keep new “Deployment by user level” section; update product name throughout)
+   - docs/presspal-dashboard-architecture.md → docs/freshpress-dashboard-architecture.md
+   - All dashboard UI strings
+4. Environment variables — backward compatibility:
+   - Aliases for legacy keys where needed (presspal_token, claudepress_token, etc.)
+   - Optional FRESHPRESS_DB_NAME env for Mongo database name (default legacy: claudepress)
+5. Search for remaining PressPal / presspal / ClaudePress references; report intentional preserves.
+
+Acceptance criteria:
+- App builds; tests pass; no user-facing PressPal branding.
+- README reflects FreshPress + deployment tiers.
+
+
+══════════════════════════════════════════════════════════════════
+PHASE 2 — Hosted CMS per buyer on Railway or Fly (Sprint 1)
+══════════════════════════════════════════════════════════════════
+
+Goal:
+Make FreshPress deployable as ONE Railway or Fly app per agency buyer (vendor-provisioned).
+Buyer and their end clients use https://{agency}.yourdomain.com/editor — no local install.
+
+Preferred host order: Railway first (simpler DX), Fly.io as documented alternative.
+
+Model summary:
+- One Railway/Fly service per buyer (vendor creates; buyer does NOT get host dashboard by default)
+- One MongoDB database per buyer on shared Atlas (MONGODB_URI → db name freshpress_{slug})
+- Persistent volume mounted at DATA_DIR for publishes + WordPress media (until object storage sprint)
+- MONGODB_URI required when HOSTED=1
+- MASTER_KEY unique per instance; handoff URL + key to agency owner
+- APP_URL = public CMS URL (editor invites + contact form API)
+- Buyer’s VERCEL_TOKEN on instance (or Admin UI Sprint 2) deploys end-client sites to THEIR Vercel
+
+Sprint 1 tasks:
+
+2.1 Railway deployment packaging (primary)
+- Add railway.toml or documented Railway setup (build: npm run build; start: npm start)
+- Nixpacks/Node 20; root start runs dist/server.js
+- Mount volume at /data → DATA_DIR=/data
+- Public networking; health check GET /api/health
+- Document equivalent fly.toml (Fly.io) as alternative in docs/HOSTED-INSTANCE.md
+
+2.2 Hosted storage profile
+- When HOSTED=1: require MONGODB_URI; warn/fail if filesystem-only for production
+- Keep filesystem + volume for publish bundles and media (minimal change vs Vercel Blob sprint)
+- Local dev unchanged (HOSTED unset, optional Mongo, ./data)
+
+2.3 Env contract — docs/HOSTED-INSTANCE.md
+Required per buyer CMS instance:
+  HOSTED=1
+  MASTER_KEY
+  MONGODB_URI          # mongodb+srv://.../freshpress_{slug}
+  APP_URL              # https://cms buyer public URL
+  DATA_DIR=/data       # Railway/Fly volume
+Optional BYOK (env in Sprint 1; Admin UI in Sprint 2):
+  VERCEL_TOKEN         # deploy published client sites to buyer Vercel
+  VERCEL_TEAM_ID
+  ANTHROPIC_API_KEY / OPENROUTER_API_KEY
+
+2.4 Manual provisioning — docs/PROVISION-BUYER.md
+Checklist:
+  1. Create Atlas DB freshpress_{slug}
+  2. Create Railway (or Fly) service from repo template
+  3. Attach volume; set env vars; generate MASTER_KEY
+  4. Custom domain for APP_URL
+  5. Deploy; verify /api/health and /editor
+  6. Handoff: CMS URL + MASTER_KEY + BUYER-SETUP.md
+  7. Log in instance registry (spreadsheet OK)
+
+2.5 Legal + buyer docs
+- COMMERCIAL-LICENSE.md
+- docs/BUYER-SETUP.md — owner login, first site, client password, invite, Resend, publish to Vercel
+- README deployment section already describes roles; link to BUYER-SETUP
+
+2.6 Sprint 1 deferrals
+- Object storage migration (Blob/R2) — optional later; volume is fine for Sprint 1
+- Admin BYOK UI → Sprint 2
+- Automated provision script → Sprint 2
+- Multi-user agency team auth → later
+- Stripe → Sprint 2
+
+Sprint 1 exit criteria:
+- [ ] Manual provision Buyer #1 on Railway in ~2 hours
+- [ ] Agency owner: create site, publish to buyer Vercel, Resend form works
+- [ ] End client: open /editor/?site=id, client login, edit + publish
+- [ ] Live static site on Vercel survives CMS restart; forms work while CMS is up
+
+Acceptance criteria:
+- npm test and npm run build pass
+- railway.toml (and fly.toml or doc) present
+- HOSTED profile documented; local dev not broken
+
+
+══════════════════════════════════════════════════════════════════
+PHASE 3 — Hosted CMS ops at scale (Sprint 2)
+══════════════════════════════════════════════════════════════════
+
+Only start after Phase 2 exit criteria met.
+
+Goal:
+Provision and operate 5–20 agency CMS instances without custom engineering per buyer.
+
+Sprint 2 tasks:
+
+3.1 Instance registry (vendor control plane)
+- Fields: buyerName, slug, railwayProjectId or flyAppName, domain, mongoDbName, status, plan
+
+3.2 Provisioning automation
+- scripts/provision-buyer.ts — Atlas DB + Railway/Fly service + env + MASTER_KEY + handoff
+
+3.3 Admin BYOK UI
+- Wire Admin → Integrations (VERCEL_TOKEN) and AI Providers
+- Encrypted storage: AES-GCM + KEY_ENCRYPTION_SECRET
+- Per-site Resend stays in Site Settings
+
+3.4 Release rollout
+- Tag v0.x; script redeploys all active Railway/Fly services from registry
+- docs/RELEASE-HOSTED.md
+
+3.5 Reliability
+- Atlas backups; sites export endpoint
+- Optional: async WordPress import (queue) for large WXR files
+
+3.6 Commercial (optional)
+- Stripe → registry status; churn = pause service + archive DB
+
+Sprint 2 exit criteria:
+- [ ] Provision buyers #2–#5 via script ~15 min each
+- [ ] Buyer configures Vercel + AI in Admin UI
+- [ ] One-command release rollout to all instances
+
+Acceptance criteria:
+- Still one CMS app per buyer (NOT multi-tenant single DB)
+- Client sites remain on buyer Vercel, not on CMS host
+
+
+══════════════════════════════════════════════════════════════════
+RULES FOR THE AGENT
+══════════════════════════════════════════════════════════════════
+
+- CMS on Railway/Fly; Vercel is publish target for end-client websites only.
+- Do not migrate Express → Next.js without asking.
+- Prefer volume + Mongo for Sprint 1 over premature Blob refactor.
+- Do not break local dev (npm run dev / optional Mongo / ./data).
+- Do not commit secrets.
+- Commit after each phase; ask before push unless requested.
+- Report TODOs and legacy names (claudepress DB, etc.) at end of each phase.
