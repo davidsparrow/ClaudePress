@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getStorage } from '../storage/filesystem.js';
 import { proposeChanges } from '../ai/chat.js';
+import { resolveAiKeys } from '../integrations/resolve.js';
+import { getStyleGuideStore } from '../storage/style-guides.js';
 import { validateChanges, mergeValidatedSlots } from '../guardian/validate.js';
 import { renderPage } from '../content/render.js';
 import { requireSiteAccess } from '../auth/middleware.js';
@@ -30,11 +32,18 @@ router.post('/sites/:siteId/pages/:pageId/chat', siteAuth, async (req, res) => {
       return;
     }
 
-    const proposal = await proposeChanges({
-      message: message.trim(),
-      content: page.content,
-      pageTitle: page.title,
-    });
+    const siteId = routeParam(req.params.siteId);
+    const styleGuide = await getStyleGuideStore().then((s) => s.get(siteId));
+    const aiKeys = await resolveAiKeys();
+    const proposal = await proposeChanges(
+      {
+        message: message.trim(),
+        content: page.content,
+        pageTitle: page.title,
+        styleContext: styleGuide?.aiSystemPromptAddition,
+      },
+      aiKeys
+    );
 
     const guardian = validateChanges(page.content, proposal.changes);
     if (!guardian.ok) {
@@ -83,11 +92,18 @@ router.post('/sites/:siteId/pages/:pageId/chat/preview', siteAuth, async (req, r
       return;
     }
 
-    const proposal = await proposeChanges({
-      message: message.trim(),
-      content: page.content,
-      pageTitle: page.title,
-    });
+    const siteId = routeParam(req.params.siteId);
+    const styleGuide = await getStyleGuideStore().then((s) => s.get(siteId));
+    const aiKeys = await resolveAiKeys();
+    const proposal = await proposeChanges(
+      {
+        message: message.trim(),
+        content: page.content,
+        pageTitle: page.title,
+        styleContext: styleGuide?.aiSystemPromptAddition,
+      },
+      aiKeys
+    );
 
     const guardian = validateChanges(page.content, proposal.changes);
 

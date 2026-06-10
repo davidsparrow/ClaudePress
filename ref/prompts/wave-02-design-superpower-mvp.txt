@@ -1,0 +1,27 @@
+Wave 2 — Design Superpower MVP
+================================
+
+Master plan: .cursor/plans/freshpress_master_build_55b1227f.plan.md
+Spec: ref/FreshPress-design-superpower-spec.md (Phases 1–2, 4)
+Prerequisite: Wave 1 complete
+
+Goal:
+StyleGuide schema, awesome-design-md themes, ThemePreview, design step on site creation.
+
+Scope:
+- StyleGuide TypeScript + Zod; per-site storage
+- themes-manifest.json + fetch DESIGN.md
+- parseDesignMd (heuristic + optional AI)
+- ThemePreview.tsx, DesignStep on Overview when no guide
+- Apply theme → save guide + site.styleGuideId
+- Inject aiSystemPromptAddition into editor chat
+
+Deferred: Firecrawl, Page Builder, Skills Manager
+
+Do NOT start Blog module (Wave 3) in this prompt.
+
+Acceptance:
+- npm test && npm run build pass
+- Create site → pick theme → preview → save → AI chat uses style context
+
+EOF

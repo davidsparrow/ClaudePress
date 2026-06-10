@@ -104,7 +104,7 @@ export class FileSystemStorage implements StorageAdapter {
 
   async updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl' | 'styleGuideId'>>
   ): Promise<SiteMeta> {
     const meta = await this.readJson<SiteMeta>(this.metaPath(siteId));
     const updated: SiteMeta = {

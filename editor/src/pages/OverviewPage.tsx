@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api';
 import WordPressImportPanel from '../components/WordPressImportPanel';
+import DesignStep from '../components/design/DesignStep';
 
 interface Props {
   siteId: string | null;
@@ -18,6 +19,28 @@ export default function OverviewPage({
   onError,
 }: Props) {
   const [ingestUrl, setIngestUrl] = useState('');
+  const [hasStyleGuide, setHasStyleGuide] = useState<boolean | null>(null);
+  const [designSkipped, setDesignSkipped] = useState(false);
+
+  useEffect(() => {
+    if (!siteId) {
+      setHasStyleGuide(null);
+      return;
+    }
+    api
+      .getSite(siteId)
+      .then((site) => {
+        if (site.meta.styleGuideId) {
+          setHasStyleGuide(true);
+          return;
+        }
+        return api.getSiteStyleGuide(siteId).then(
+          () => setHasStyleGuide(true),
+          () => setHasStyleGuide(false)
+        );
+      })
+      .catch(() => setHasStyleGuide(false));
+  }, [siteId]);
 
   async function handleIngest(e: React.FormEvent) {
     e.preventDefault();
@@ -34,13 +57,27 @@ export default function OverviewPage({
   if (!siteId) {
     return (
       <div className="dash-page">
-        <h2 className="dash-page__title">Welcome to PressPal</h2>
+        <h2 className="dash-page__title">Welcome to FreshPress</h2>
         <p className="dash-page__lead">No client sites yet.</p>
         <p className="dash-page__muted">
           Use <strong>+ Add Site</strong> in the sidebar to create a site, or import from WordPress below.
         </p>
         <WordPressImportPanel onImported={onImported} />
       </div>
+    );
+  }
+
+  if (hasStyleGuide === false && !designSkipped) {
+    return (
+      <DesignStep
+        siteId={siteId}
+        siteName={siteName ?? 'Site'}
+        onComplete={() => {
+          setHasStyleGuide(true);
+          onSiteCreated();
+        }}
+        onSkip={() => setDesignSkipped(true)}
+      />
     );
   }
 
