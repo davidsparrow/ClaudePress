@@ -1,0 +1,17 @@
+Wave 6 — Blog polish
+====================
+
+Goal:
+AI detection, humanize BYOK, RSS feed storage, editorial blog index (already in render).
+
+Scope:
+- detect-ai, humanize endpoints
+- RSS feed CRUD (Idea Engine UI stub)
+- Originality.ai BYOK when configured
+
+Deferred: stock images, full Idea Engine 3-tier actions, kinetic masonry index
+
+Acceptance:
+- npm test && npm run build pass
+
+EOF
