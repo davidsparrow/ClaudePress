@@ -4,6 +4,7 @@ export interface ChatRequest {
   message: string;
   content: PageContent;
   pageTitle?: string;
+  styleContext?: string;
 }
 
 export interface ChatResponse {
@@ -12,7 +13,7 @@ export interface ChatResponse {
   provider: 'anthropic' | 'openrouter';
 }
 
-const SYSTEM_PROMPT = `You are a content editor assistant for a locked-template CMS.
+const BASE_SYSTEM_PROMPT = `You are a content editor assistant for a locked-template CMS.
 You MUST NOT write HTML, CSS, JavaScript, or code of any kind.
 You only propose content slot value changes as JSON.
 
@@ -32,6 +33,11 @@ Rules:
 - Keep changes minimal and faithful to the user's request.
 - For link slots, include href when changing the destination.`;
 
+function buildSystemPrompt(styleContext?: string): string {
+  if (!styleContext?.trim()) return BASE_SYSTEM_PROMPT;
+  return `${BASE_SYSTEM_PROMPT}\n\nSite design direction:\n${styleContext.trim()}`;
+}
+
 export function buildUserPrompt(req: ChatRequest): string {
   const slotSummary = req.content.slotOrder
     .map((id) => {
@@ -50,7 +56,23 @@ ${slotSummary}
 User request: ${req.message}`;
 }
 
-export async function proposeChanges(req: ChatRequest): Promise<ChatResponse> {
+export interface AiCredentials {
+  provider: 'anthropic' | 'openrouter';
+  apiKey: string;
+  model?: string;
+}
+
+export async function proposeChanges(
+  req: ChatRequest,
+  credentials?: AiCredentials | null
+): Promise<ChatResponse> {
+  if (credentials) {
+    if (credentials.provider === 'anthropic') {
+      return callAnthropic(req, credentials.apiKey, credentials.model);
+    }
+    return callOpenRouter(req, credentials.apiKey, credentials.model);
+  }
+
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
@@ -60,11 +82,17 @@ export async function proposeChanges(req: ChatRequest): Promise<ChatResponse> {
   if (openRouterKey) {
     return callOpenRouter(req, openRouterKey);
   }
-  throw new Error('No AI provider configured — set ANTHROPIC_API_KEY or OPENROUTER_API_KEY');
+  throw new Error(
+    'No AI provider configured — add keys in Admin → AI Providers or set ANTHROPIC_API_KEY / OPENROUTER_API_KEY'
+  );
 }
 
-async function callAnthropic(req: ChatRequest, apiKey: string): Promise<ChatResponse> {
-  const model = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-20250514';
+async function callAnthropic(
+  req: ChatRequest,
+  apiKey: string,
+  modelOverride?: string
+): Promise<ChatResponse> {
+  const model = modelOverride ?? process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-20250514';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -75,7 +103,7 @@ async function callAnthropic(req: ChatRequest, apiKey: string): Promise<ChatResp
     body: JSON.stringify({
       model,
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(req.styleContext),
       messages: [{ role: 'user', content: buildUserPrompt(req) }],
     }),
   });
@@ -91,20 +119,24 @@ async function callAnthropic(req: ChatRequest, apiKey: string): Promise<ChatResp
   return parseAiJson(text, 'anthropic');
 }
 
-async function callOpenRouter(req: ChatRequest, apiKey: string): Promise<ChatResponse> {
-  const model = process.env.OPENROUTER_MODEL ?? 'anthropic/claude-sonnet-4';
+async function callOpenRouter(
+  req: ChatRequest,
+  apiKey: string,
+  modelOverride?: string
+): Promise<ChatResponse> {
+  const model = modelOverride ?? process.env.OPENROUTER_MODEL ?? 'anthropic/claude-sonnet-4';
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
       'HTTP-Referer': process.env.APP_URL ?? 'http://localhost:3001',
-      'X-Title': 'PressPal',
+      'X-Title': 'FreshPress',
     },
     body: JSON.stringify({
       model,
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt(req.styleContext) },
         { role: 'user', content: buildUserPrompt(req) },
       ],
       response_format: { type: 'json_object' },
