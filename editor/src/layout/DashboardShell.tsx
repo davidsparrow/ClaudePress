@@ -56,6 +56,22 @@ export default function DashboardShell({ onLogout }: Props) {
     refreshSites().finally(() => setLoading(false));
   }, [refreshSites]);
 
+  useEffect(() => {
+    function onNavigate(e: Event) {
+      const detail = (e as CustomEvent<{ siteSection?: string; hash?: string }>).detail;
+      if (detail?.siteSection === 'settings') {
+        setActiveSiteSection('settings');
+        if (detail.hash) {
+          requestAnimationFrame(() => {
+            document.getElementById(detail.hash!)?.scrollIntoView({ behavior: 'smooth' });
+          });
+        }
+      }
+    }
+    window.addEventListener('freshpress:navigate', onNavigate);
+    return () => window.removeEventListener('freshpress:navigate', onNavigate);
+  }, [setActiveSiteSection]);
+
   const selectedSite = sites.find((s) => s.id === selectedSiteId) ?? null;
   const editorFocus = sidebarMode === 'sites' && activeSiteSection === 'editor' && !!selectedSiteId;
 

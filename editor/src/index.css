@@ -1111,3 +1111,78 @@ textarea:focus {
     overflow: hidden;
   }
 }
+
+.humanize-panel {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.humanize-panel__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.humanize-panel__mode select,
+.humanize-panel__review-opt {
+  font-size: 0.85rem;
+}
+
+.humanize-panel__review-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.humanize-panel__skill-link {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent, #6366f1);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: inherit;
+}
+
+.humanize-panel__scores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+.humanize-panel__scores th,
+.humanize-panel__scores td {
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+.humanize-panel__preview {
+  max-height: 280px;
+  overflow: auto;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.settings-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}

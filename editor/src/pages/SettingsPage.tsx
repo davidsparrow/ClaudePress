@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api, type SiteMeta, type SiteVersion } from '../api';
 import SiteEmailDelivery from '../components/SiteEmailDelivery';
 import ClientAccessInvite from '../components/ClientAccessInvite';
+import HumanizerSettingsSection from '../components/HumanizerSettingsSection';
 
 interface Props {
   siteId: string;
@@ -108,6 +109,8 @@ export default function SettingsPage({ siteId }: Props) {
           <h3>Metadata</h3>
           <p className="dash-page__muted">Default SEO title, meta description, and OpenGraph image — TODO.</p>
         </section>
+
+        <HumanizerSettingsSection siteId={siteId} />
 
         <section className="panel settings-card settings-card--full">
           <SiteEmailDelivery siteId={siteId} />

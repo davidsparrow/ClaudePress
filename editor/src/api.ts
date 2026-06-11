@@ -77,6 +77,54 @@ export interface BlogSilo {
   posts: BlogPost[];
 }
 
+export type HumanizerMode = 'simple' | 'skill';
+
+export interface HumanizerReviewScore {
+  score: number;
+  note: string;
+}
+
+export interface HumanizerReview {
+  contentType: string;
+  assessment: string;
+  scores: Record<string, HumanizerReviewScore>;
+  patternFlags: Array<{ quote: string; suggestion: string }>;
+  topChanges: string[];
+}
+
+export interface HumanizeResult {
+  humanizedHtml: string;
+  mode: HumanizerMode;
+  review?: HumanizerReview;
+}
+
+export interface HumanizerSiteConfig {
+  siteId: string;
+  mode: HumanizerMode;
+  tone: string;
+  readingLevel: string;
+  voiceSample?: string;
+  customAugment?: string;
+  contentTypeHint?: 'blog' | 'email' | 'auto';
+  updatedAt: string;
+}
+
+export interface CampaignStep {
+  id: string;
+  subject: string;
+  previewText: string;
+  bodyHtml: string;
+  delayDays: number;
+  order: number;
+}
+
+export interface HumanizeRequestOptions {
+  mode?: HumanizerMode;
+  includeReview?: boolean;
+  html?: string;
+  contentType?: 'blog' | 'email' | 'auto';
+}
+
 export interface PublishRecord {
   id: string;
   siteId: string;
@@ -361,13 +409,72 @@ export const api = {
       pageUrl: string;
       keyword: string;
     }>(`/sites/${siteId}/blog/posts/${postId}/seo-recipes`),
-  detectBlogAi: (siteId: string, postId: string) =>
+  detectBlogAi: (siteId: string, postId: string, html?: string) =>
     request<{ score: number; provider: string; note?: string }>(
       `/sites/${siteId}/blog/posts/${postId}/detect-ai`,
-      { method: 'POST' }
+      { method: 'POST', body: JSON.stringify(html ? { html } : {}) }
     ),
-  humanizeBlogPost: (siteId: string, postId: string) =>
-    request<{ humanizedHtml: string }>(`/sites/${siteId}/blog/posts/${postId}/humanize`, {
+  detectAiContent: (siteId: string, html: string) =>
+    request<{ score: number; provider: string; note?: string }>(
+      `/sites/${siteId}/humanizer/detect-ai`,
+      { method: 'POST', body: JSON.stringify({ html }) }
+    ),
+  humanizeBlogPost: (siteId: string, postId: string, opts?: HumanizeRequestOptions) =>
+    request<HumanizeResult>(`/sites/${siteId}/blog/posts/${postId}/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts ?? {}),
+    }),
+  humanizeContent: (siteId: string, opts: HumanizeRequestOptions & { html: string }) =>
+    request<HumanizeResult>(`/sites/${siteId}/humanizer/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts),
+    }),
+  humanizePageSlot: (
+    siteId: string,
+    pageId: string,
+    slotId: string,
+    opts?: HumanizeRequestOptions
+  ) =>
+    request<HumanizeResult>(`/sites/${siteId}/pages/${pageId}/slots/${slotId}/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts ?? {}),
+    }),
+  humanizeCampaignStep: (
+    siteId: string,
+    campaignId: string,
+    stepId: string,
+    opts?: HumanizeRequestOptions
+  ) =>
+    request<HumanizeResult>(
+      `/sites/${siteId}/campaigns/${campaignId}/steps/${stepId}/humanize`,
+      { method: 'POST', body: JSON.stringify(opts ?? {}) }
+    ),
+  updateCampaignStep: (
+    siteId: string,
+    campaignId: string,
+    stepId: string,
+    body: Partial<CampaignStep>
+  ) =>
+    request<CampaignStep>(`/sites/${siteId}/campaigns/${campaignId}/steps/${stepId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  getHumanizerConfig: (siteId: string) =>
+    request<{
+      config: HumanizerSiteConfig;
+      upstream: { version: string; syncedAt: string } | null;
+    }>(`/sites/${siteId}/humanizer-config`),
+  updateHumanizerConfig: (siteId: string, body: Partial<HumanizerSiteConfig>) =>
+    request<HumanizerSiteConfig>(`/sites/${siteId}/humanizer-config`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  getHumanizerPromptPreview: (siteId: string) =>
+    request<{ length: number; estimatedTokens: number }>(
+      `/sites/${siteId}/humanizer/prompt-preview`
+    ),
+  syncHumanizerUpstream: () =>
+    request<{ version: string; syncedAt: string }>('/admin/humanizer/sync-upstream', {
       method: 'POST',
     }),
   listRssFeeds: (siteId: string) =>
@@ -384,12 +491,12 @@ export const api = {
   createCampaign: (siteId: string, pillarId: string) =>
     request<{
       campaign: { id: string; name: string };
-      steps: Array<{ subject: string; previewText: string; delayDays: number }>;
+      steps: CampaignStep[];
     }>(`/sites/${siteId}/campaigns`, { method: 'POST', body: JSON.stringify({ pillarId }) }),
   getCampaign: (siteId: string, campaignId: string) =>
     request<{
-      campaign: { id: string; name: string };
-      steps: Array<{ subject: string; previewText: string; delayDays: number }>;
+      campaign: { id: string; name: string; status?: string };
+      steps: CampaignStep[];
     }>(`/sites/${siteId}/campaigns/${campaignId}`),
   activateCampaign: (siteId: string, campaignId: string) =>
     request<{ campaign: { id: string }; automationId?: string }>(

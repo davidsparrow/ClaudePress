@@ -8,6 +8,7 @@ import {
   type SiteVersion,
 } from '../api';
 import SeoPromptsPanel from './SeoPromptsPanel';
+import HumanizePanel from './HumanizePanel';
 
 interface Props {
   siteId: string;
@@ -325,6 +326,25 @@ export default function Editor({ siteId, onBack, onLogout, embedded }: Props) {
                   Cancel
                 </button>
               </div>
+              {activePage && activeSlotId && (
+                <HumanizePanel
+                  siteId={siteId}
+                  contentHtml={
+                    editValue.includes('<') ? editValue : `<p>${editValue}</p>`
+                  }
+                  contentType="blog"
+                  humanizeTarget={{
+                    kind: 'slot',
+                    pageId: activePage.id,
+                    slotId: activeSlotId,
+                  }}
+                  compact
+                  onAccept={(html) => {
+                    const plain = html.replace(/<[^>]+>/g, '').trim() || html;
+                    setEditValue(activeSlot?.type === 'text' ? plain : html);
+                  }}
+                />
+              )}
             </div>
           )}
         </main>

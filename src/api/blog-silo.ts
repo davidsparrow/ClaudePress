@@ -3,7 +3,8 @@ import { requireOwner, requireSiteAccess } from '../auth/middleware.js';
 import { routeParam } from '../util/params.js';
 import { getBlogSiloStore } from '../storage/blog-silo.js';
 import { applyAutoSeo } from '../blog/auto-seo.js';
-import { humanizeHtml } from '../blog/humanize.js';
+import { humanizeHtml } from '../humanizer/humanize.js';
+import type { HumanizerContentType, HumanizerMode } from '../humanizer/types.js';
 import { detectAiContent } from '../blog/detection.js';
 import { getRssFeedStore } from '../storage/rss-feeds.js';
 import { getSeoPrompt, applySiteContext } from '../seo-prompts/loader.js';
@@ -121,14 +122,25 @@ router.post('/sites/:siteId/blog/posts/:postId/humanize', requireOwner, async (r
   try {
     const siteId = routeParam(req.params.siteId);
     const postId = routeParam(req.params.postId);
+    const body = req.body as {
+      mode?: HumanizerMode;
+      includeReview?: boolean;
+      html?: string;
+    };
     const store = await getBlogSiloStore();
     const post = await store.getPost(siteId, postId);
     if (!post) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
-    const humanized = await humanizeHtml(post.bodyHtml);
-    res.json({ humanizedHtml: humanized });
+    const result = await humanizeHtml({
+      html: body.html ?? post.bodyHtml,
+      siteId,
+      mode: body.mode,
+      includeReview: body.includeReview === true,
+      contentType: 'blog' as HumanizerContentType,
+    });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Humanize failed' });
   }
@@ -142,7 +154,8 @@ router.post('/sites/:siteId/blog/posts/:postId/detect-ai', requireOwner, async (
       res.status(404).json({ error: 'Post not found' });
       return;
     }
-    const result = await detectAiContent(post.bodyHtml);
+    const body = req.body as { html?: string };
+    const result = await detectAiContent(body.html ?? post.bodyHtml);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Detection failed' });
