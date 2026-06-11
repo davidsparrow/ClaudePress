@@ -16,7 +16,8 @@ import {
   type SiteSection,
 } from './dashboardTypes';
 
-const STORAGE_KEY = 'presspal_dashboard';
+const STORAGE_KEY = 'freshpress_dashboard';
+const LEGACY_STORAGE_KEY = 'presspal_dashboard';
 
 const DEFAULT_STATE: DashboardState = {
   selectedSiteId: null,
@@ -40,7 +41,14 @@ function isSidebarMode(value: unknown): value is SidebarMode {
 
 function loadPersistedState(): DashboardState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
     if (!raw) return DEFAULT_STATE;
     const parsed = JSON.parse(raw) as Partial<DashboardState>;
     return {

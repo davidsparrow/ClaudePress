@@ -65,7 +65,7 @@ export default function Sidebar({
       <div className="dash-sidebar__header">
         {!sidebarCollapsed && (
           <span className="dash-sidebar__brand">
-            {sidebarMode === 'admin' ? 'PressPal Admin' : 'PressPal'}
+            {sidebarMode === 'admin' ? 'FreshPress Admin' : 'FreshPress'}
           </span>
         )}
         <button

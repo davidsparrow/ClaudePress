@@ -106,10 +106,11 @@ function escapeHtml(text: string): string {
 export async function savePublishBundle(
   siteId: string,
   pages: SitePage[],
-  label: string
+  label: string,
+  extraFiles: Record<string, string> = {}
 ): Promise<PublishBundle> {
   const id = nanoid(12);
-  const files = renderStaticBundle(pages);
+  const files = { ...renderStaticBundle(pages), ...extraFiles };
   const dir = publishDir(siteId, id);
   await mkdir(dir, { recursive: true });
 

@@ -6,6 +6,8 @@ export type SiteSection =
   | 'pages'
   | 'media'
   | 'forms'
+  | 'blog'
+  | 'campaigns'
   | 'seo'
   | 'publishes'
   | 'snapshots'
@@ -28,6 +30,8 @@ export const SITE_SECTIONS: SiteSection[] = [
   'pages',
   'media',
   'forms',
+  'blog',
+  'campaigns',
   'seo',
   'publishes',
   'snapshots',
@@ -52,6 +56,8 @@ export const SITE_SECTION_LABELS: Record<SiteSection, string> = {
   pages: 'Pages',
   media: 'Media',
   forms: 'Forms',
+  blog: 'Blog',
+  campaigns: 'Campaigns',
   seo: 'SEO',
   publishes: 'Publishes',
   snapshots: 'Snapshots',

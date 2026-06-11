@@ -1,0 +1,31 @@
+Wave 0 — Rebrand PressPal to FreshPress
+========================================
+
+Repo: davidsparrow/ClaudePress
+Master plan: .cursor/plans/freshpress_master_build_55b1227f.plan.md
+
+Goal:
+Refactor product branding from PressPal / PressPal CMS to FreshPress / FreshPress CMS
+without changing core behavior.
+
+Source: ref/freshpress-hosted-instance—prompt.txt Phase 1
+
+Tasks:
+1. Rename visible product branding (PressPal → FreshPress) across editor + docs
+2. Package names: presspal → freshpress, presspal-editor → freshpress-editor
+3. Rename docs/presspal-dashboard-architecture.md → docs/freshpress-dashboard-architecture.md
+4. localStorage keys: freshpress_token, freshpress_dashboard with legacy aliases
+5. FRESHPRESS_DB_NAME env for Mongo (default claudepress)
+
+Intentional preserves (do NOT rename):
+- WordPress PHP helpers: claudepress_slot(), claudepress_slots option
+- Legacy localStorage keys read for migration only
+
+Do NOT start Wave 1+ in this prompt.
+
+Acceptance criteria:
+- npm test && npm run build pass
+- No user-facing PressPal branding in src/ or editor/
+- README reflects FreshPress + deployment tiers
+
+EOF

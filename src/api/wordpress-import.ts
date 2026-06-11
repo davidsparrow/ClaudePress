@@ -12,7 +12,7 @@ import { importWordPressXml } from '../wordpress/import/run-import.js';
 const router = Router();
 
 const upload = multer({
-  dest: join(tmpdir(), 'presspal-import'),
+  dest: join(tmpdir(), 'freshpress-import'),
   limits: { fileSize: 100 * 1024 * 1024 },
 });
 

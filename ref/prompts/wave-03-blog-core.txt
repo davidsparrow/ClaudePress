@@ -1,0 +1,25 @@
+Wave 3 — Blog core MVP
+======================
+
+Master plan: .cursor/plans/freshpress_master_build_55b1227f.plan.md
+Spec: ref/FreshPress-blog-module-spec.md (items 1–7)
+Prerequisite: Wave 2 complete
+
+Goal:
+Keyword silo manager, TipTap editor, publish blog HTML to static bundle/Vercel.
+
+Scope:
+- BlogPillar + BlogPost models and storage
+- Silo manager UI, post editor with TipTap
+- renderBlogBundle → blog/index.html + blog/{slug}.html
+- Merge blog files into publish bundle; JSON-LD Article stub
+
+Deferred: AI detection, humanize, RSS Idea Engine, kinetic index (Wave 6)
+
+Do NOT start hosted deployment (Wave 4) in this prompt.
+
+Acceptance:
+- npm test && npm run build pass
+- Create pillar + supportive posts → publish → blog URLs in bundle
+
+EOF

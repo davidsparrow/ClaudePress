@@ -1,0 +1,14 @@
+[
+  { "id": "vercel", "name": "Vercel", "desc": "Black & white precision, Geist font", "aesthetic": "Minimalist Precision" },
+  { "id": "figma", "name": "Figma", "desc": "Vibrant multi-color, playful yet professional", "aesthetic": "Playful Professional" },
+  { "id": "framer", "name": "Framer", "desc": "Bold black & blue, motion-first", "aesthetic": "Motion-First Bold" },
+  { "id": "webflow", "name": "Webflow", "desc": "Blue-accented, polished marketing site", "aesthetic": "Polished Marketing" },
+  { "id": "resend", "name": "Resend", "desc": "Minimal dark theme, monospace accents", "aesthetic": "Developer Minimal" },
+  { "id": "zapier", "name": "Zapier", "desc": "Warm orange, illustration-driven", "aesthetic": "Warm Friendly" },
+  { "id": "airtable", "name": "Airtable", "desc": "Colorful, friendly, structured data", "aesthetic": "Colorful Structured" },
+  { "id": "cursor", "name": "Cursor", "desc": "Sleek dark, gradient accents", "aesthetic": "Dark Tech" },
+  { "id": "elevenlabs", "name": "ElevenLabs", "desc": "Dark cinematic, audio-waveform aesthetics", "aesthetic": "Cinematic Dark" },
+  { "id": "cal", "name": "Cal.com", "desc": "Clean SaaS, strong typographic hierarchy", "aesthetic": "Clean SaaS" },
+  { "id": "mistral", "name": "Mistral AI", "desc": "French minimalism, purple-toned", "aesthetic": "European Minimal" },
+  { "id": "raycast", "name": "Raycast", "desc": "Sleek dark chrome, vibrant gradient accents", "aesthetic": "Dark Chrome" }
+]

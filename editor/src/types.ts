@@ -27,6 +27,7 @@ export interface SiteMeta {
   id: string;
   name: string;
   domain?: string;
+  styleGuideId?: string;
   createdAt: string;
   updatedAt: string;
 }

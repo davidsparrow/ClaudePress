@@ -1,0 +1,25 @@
+Wave 1 — BYOK vault + Admin integrations
+=========================================
+
+Master plan: .cursor/plans/freshpress_master_build_55b1227f.plan.md
+Prerequisite: Wave 0 complete
+
+Goal:
+Encrypted workspace-level API key storage with Admin UI for Integrations and AI Providers.
+
+Scope:
+- AES-256-GCM encryption (KEY_ENCRYPTION_SECRET or MASTER_KEY fallback)
+- IntegrationsStore (filesystem + MongoDB)
+- Keys: openrouter, anthropic, firecrawl, onpage_ai, vercel, originality_ai
+- API: GET/PUT /api/admin/integrations, GET /api/admin/openrouter/models
+- Wire chat + publish to resolve keys from vault (env fallback)
+- Admin → Integrations and Admin → AI Providers UI
+
+Do NOT start Design Superpower (Wave 2) in this prompt.
+
+Acceptance:
+- npm test && npm run build pass
+- Save key in Admin → restart → AI chat works with vault key
+- No secrets in client bundle or API GET responses
+
+EOF

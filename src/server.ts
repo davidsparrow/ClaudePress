@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import { validateHostedProfile } from './hosted/validate.js';
+
+validateHostedProfile();
 import express from 'express';
 import cors from 'cors';
 import { join } from 'node:path';
@@ -13,6 +16,11 @@ import emailRouter from './api/email.js';
 import publicRouter from './api/public.js';
 import wordpressRouter from './api/wordpress.js';
 import wordpressImportRouter from './api/wordpress-import.js';
+import integrationsRouter from './api/integrations.js';
+import designRouter from './api/design.js';
+import blogSiloRouter from './api/blog-silo.js';
+import campaignsRouter from './api/campaigns.js';
+import adminExportRouter from './api/admin-export.js';
 import { getStorage } from './storage/filesystem.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
@@ -30,6 +38,11 @@ app.use('/api', emailRouter);
 app.use('/api', publicRouter);
 app.use('/api', wordpressRouter);
 app.use('/api', wordpressImportRouter);
+app.use('/api', integrationsRouter);
+app.use('/api', designRouter);
+app.use('/api', blogSiloRouter);
+app.use('/api', campaignsRouter);
+app.use('/api', adminExportRouter);
 
 /** Serve migrated WordPress media per site */
 app.use('/media/:siteId/wp-content/uploads', (req, res, next) => {
@@ -122,7 +135,7 @@ app.get('/editor/*', (_req, res) => {
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`PressPal API listening on http://localhost:${PORT}`);
+    console.log(`FreshPress API listening on http://localhost:${PORT}`);
   });
 }
 

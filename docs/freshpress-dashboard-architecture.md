@@ -1,20 +1,20 @@
-# PressPal Dashboard Architecture
+# FreshPress Dashboard Architecture
 
 ## Product principle
 
 **One sidebar, two modes: Sites Mode and Admin Mode.**
 
-PressPal separates two contexts:
+FreshPress separates two contexts:
 
 1. **Sites Mode** — managing a selected client site (content, forms, publishes, site settings).
 2. **Admin Mode** — workspace-level defaults and placeholders (billing, integrations, security).
 
-Users should always know: *“Am I managing a client site, or am I managing PressPal itself?”*
+Users should always know: *"Am I managing a client site, or am I managing FreshPress itself?"*
 
 ## Why this structure
 
 - Client site management and workspace admin are different mental models.
-- Avoid multiple competing sidebars (no second permanent “site settings” sidebar).
+- Avoid multiple competing sidebars (no second permanent "site settings" sidebar).
 - Keep site-specific settings under **Selected Site → Settings**.
 - Keep workspace defaults under **Admin Mode**.
 
@@ -27,13 +27,12 @@ Users should always know: *“Am I managing a client site, or am I managing Pres
   - Pages
   - Media
   - Forms
+  - Blog
   - SEO
   - Publishes
   - Snapshots
   - Settings
 - **Admin Settings** button at the bottom switches to Admin Mode.
-
-**Blog** is intentionally deferred until Forms, Media, SEO, and Snapshots are stable.
 
 ## Editor focus workspace
 
@@ -87,7 +86,7 @@ Active site and nav items use a subtle `--accent` indicator.
 
 - `selectedSiteId`, `sidebarMode`, `activeSiteSection`, `activeAdminSection`, `sidebarCollapsed`
 
-Persisted in `localStorage` (`presspal_dashboard`) with validated defaults.
+Persisted in `localStorage` (`freshpress_dashboard`) with validated defaults. Legacy key `presspal_dashboard` is migrated on read.
 
 ## Future
 

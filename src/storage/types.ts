@@ -25,6 +25,8 @@ export interface SiteMeta {
   id: string;
   name: string;
   domain?: string;
+  /** Linked StyleGuide for design DNA */
+  styleGuideId?: string;
   /** Original WordPress site URL when imported from WXR */
   sourceBaseUrl?: string;
   /** bcrypt hash of client password */
@@ -74,7 +76,7 @@ export interface StorageAdapter {
   createSite(name: string, domain?: string): Promise<Site>;
   updateSiteMeta(
     siteId: string,
-    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl'>>
+    patch: Partial<Pick<SiteMeta, 'name' | 'domain' | 'email' | 'sourceBaseUrl' | 'styleGuideId'>>
   ): Promise<SiteMeta>;
   setClientPassword(siteId: string, passwordHash: string): Promise<void>;
   deleteSite(siteId: string): Promise<void>;

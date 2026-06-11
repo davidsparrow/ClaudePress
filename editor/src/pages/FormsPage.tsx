@@ -92,9 +92,9 @@ export default function FormsPage({ siteId, siteName }: Props) {
 
   return (
     <div className="dash-page">
-      <h2 className="dash-page__title">PressPal Forms</h2>
+      <h2 className="dash-page__title">FreshPress Forms</h2>
       <p className="dash-page__lead">
-        PressPal Forms gives each client site a working contact form and lead inbox — no WordPress plugin, no
+        FreshPress Forms gives each client site a working contact form and lead inbox — no WordPress plugin, no
         SMTP headache.
       </p>
       <p className="dash-page__muted">

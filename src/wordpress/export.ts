@@ -12,7 +12,7 @@ export function slugify(text: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 40) || 'presspal-site';
+    .slice(0, 40) || 'freshpress-site';
 }
 
 export function pageSlug(page: SitePage): string {
@@ -20,7 +20,7 @@ export function pageSlug(page: SitePage): string {
   return slugify(page.path.replace(/^\//, '').replace(/\//g, '-'));
 }
 
-/** Convert PressPal slot placeholders to PHP helper calls */
+/** Convert FreshPress slot placeholders to PHP helper calls */
 export function templateToPhp(template: string): string {
   const regex = /\{\{slot:([^}]+)\}\}/g;
   return template.replace(regex, (_match, id: string) => {
@@ -71,7 +71,7 @@ export function buildWordPressTheme(site: Site): WordPressThemeExport {
     throw new Error('No pages to export');
   }
 
-  const themeSlug = `presspal-${slugify(site.meta.name)}`;
+  const themeSlug = `freshpress-${slugify(site.meta.name)}`;
   const themeName = site.meta.name;
   const files: Record<string, string> = {};
 
@@ -119,7 +119,7 @@ export function buildWordPressTheme(site: Site): WordPressThemeExport {
 
   files['assets/theme.css'] = combinedStyles.length
     ? combinedStyles.join('\n\n')
-    : '/* Add custom styles — exported from PressPal frozen template */\n';
+    : '/* Add custom styles — exported from FreshPress frozen template */\n';
 
   files['INSTALL.md'] = buildInstallMd(themeName, themeSlug, site);
   files['ANIMATIONS.md'] = buildAnimationsMd([...allAnimationHints]);
@@ -132,7 +132,7 @@ function buildPageTemplate(title: string, bodyPhp: string, templateName: string)
   return `<?php
 /**
  * Template Name: ${title.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}
- * PressPal export — ${templateName}
+ * FreshPress export — ${templateName}
  */
 get_header();
 ?>
@@ -150,9 +150,9 @@ function buildStyleCss(themeName: string, themeSlug: string, styles: string[]): 
   return `/*
 Theme Name: ${themeName}
 Theme URI: https://github.com/davidsparrow/ClaudePress
-Author: PressPal
+Author: FreshPress
 Author URI: https://github.com/davidsparrow/ClaudePress
-Description: Custom theme exported from PressPal CMS. Editable content slots are stored in inc/slots.json.
+Description: Custom theme exported from FreshPress CMS. Editable content slots are stored in inc/slots.json.
 Version: 1.0.0
 Requires at least: 6.0
 Tested up to: 6.7
@@ -178,7 +178,7 @@ function buildInstallMd(themeName: string, themeSlug: string, site: Site): strin
 
   return `# WordPress Install Guide — ${themeName}
 
-This theme was exported from **PressPal CMS**. The design layout is frozen in PHP templates; editable text and images live in \`inc/slots.json\`.
+This theme was exported from **FreshPress CMS**. The design layout is frozen in PHP templates; editable text and images live in \`inc/slots.json\`.
 
 ## 1. Upload the theme
 
@@ -225,11 +225,11 @@ update_option('claudepress_slots', $slots);
 For client-friendly editing, consider:
 - **Advanced Custom Fields (ACF)** — map slot IDs to field groups
 - **Customiser** — extend \`functions.php\` with \`customize_register\` hooks
-- Re-import from PressPal after edits and re-upload the theme
+- Re-import from FreshPress after edits and re-upload the theme
 
 ## 6. Contact forms
 
-If you used PressPal contact forms, point forms to your PressPal server or replace with:
+If you used FreshPress contact forms, point forms to your FreshPress server or replace with:
 - **Contact Form 7**
 - **WPForms**
 - **Gravity Forms**
@@ -248,7 +248,7 @@ function buildAnimationsMd(hints: string[]): string {
 
   return `# Animation & Motion — React to WordPress
 
-Your PressPal site may have used React-based animations. WordPress themes are PHP + HTML + CSS. Use this guide to recreate similar effects.
+Your FreshPress site may have used React-based animations. WordPress themes are PHP + HTML + CSS. Use this guide to recreate similar effects.
 
 ## Detected in your export
 
@@ -347,9 +347,9 @@ Then add ScrollTrigger timelines in a custom \`assets/animations.js\` file.
 }
 
 function buildReadmeMd(themeName: string): string {
-  return `# ${themeName} — PressPal WordPress Theme
+  return `# ${themeName} — FreshPress WordPress Theme
 
-Exported from [PressPal CMS](https://github.com/davidsparrow/ClaudePress).
+Exported from [FreshPress CMS](https://github.com/davidsparrow/ClaudePress).
 
 - **INSTALL.md** — step-by-step WordPress setup
 - **ANIMATIONS.md** — recreate React motion with CSS/plugins
@@ -393,7 +393,7 @@ get_header();
 
 const SLOTS_PHP = `<?php
 /**
- * PressPal slot renderer — reads from claudepress_slots option.
+ * FreshPress slot renderer — reads from claudepress_slots option.
  */
 
 function claudepress_get_slots(): array {
@@ -440,7 +440,7 @@ function claudepress_slot(string $id): void {
 
 const FUNCTIONS_PHP = `<?php
 /**
- * PressPal WordPress theme — exported from PressPal CMS
+ * FreshPress WordPress theme — exported from FreshPress CMS
  */
 
 require_once get_template_directory() . '/inc/slots.php';

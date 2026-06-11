@@ -22,7 +22,7 @@ interface SlotCandidate {
 /** Fetch and parse a URL into a frozen template + content slots */
 export async function ingestUrl(sourceUrl: string): Promise<IngestResult> {
   const response = await fetch(sourceUrl, {
-    headers: { 'User-Agent': 'PressPal-Ingest/1.0' },
+    headers: { 'User-Agent': 'FreshPress-Ingest/1.0' },
   });
 
   if (!response.ok) {

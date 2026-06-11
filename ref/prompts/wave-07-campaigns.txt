@@ -1,0 +1,19 @@
+Wave 7 — Campaign system
+=========================
+
+Spec: ref/FreshPress-campaign-system-spec.md
+
+Goal:
+Pillar-linked campaigns, AI pre-draft, Resend Automations activate.
+
+Scope:
+- email_campaigns + campaign_steps storage
+- Create from pillar, sequence editor view, activate endpoint
+- Campaigns site nav
+
+Deferred: webhooks dashboard, reply auto-stop, lead capture embed (add with blog publish)
+
+Acceptance:
+- npm test && npm run build pass
+
+EOF

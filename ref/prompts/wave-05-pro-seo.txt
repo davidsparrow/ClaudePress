@@ -1,0 +1,20 @@
+Wave 5 — Pro SEO integration
+============================
+
+Spec: ref/seo-prompts/advanced-seo-recipes.txt, headcheck-nextjs-seo.md
+
+Goal:
+Dashboard SEO page, Blog SEO Lab with pre-filled recipes, auto-SEO on save.
+
+Scope:
+- applyAutoSeo on blog post PATCH
+- GET seo-recipes for blog posts
+- SeoPage + Blog SEO Lab copy-to-clipboard
+
+Deferred: server-side On-Page.ai API orchestration (use MCP via copied prompts)
+
+Acceptance:
+- npm test && npm run build pass
+- Blog post save fills meta fields; recipe copies include post URL + keyword
+
+EOF
