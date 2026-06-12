@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type BlogPost, type BlogSilo } from '../api';
+import { useDashboard } from '../context/DashboardContext';
 import TipTapEditor from '../components/blog/TipTapEditor';
 import HumanizePanel from '../components/HumanizePanel';
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function BlogPage({ siteId }: Props) {
+  const { setActiveSiteSection } = useDashboard();
   const [silos, setSilos] = useState<BlogSilo[]>([]);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [post, setPost] = useState<BlogPost | null>(null);
@@ -21,6 +23,9 @@ export default function BlogPage({ siteId }: Props) {
   const [rssUrl, setRssUrl] = useState('');
   const [rssLabel, setRssLabel] = useState('');
   const [rssFeeds, setRssFeeds] = useState<Array<{ id: string; url: string; label: string }>>([]);
+  const [socialGenerating, setSocialGenerating] = useState(false);
+  const [includeFullScreenCards, setIncludeFullScreenCards] = useState(true);
+  const [socialDraftCount, setSocialDraftCount] = useState(0);
 
   const refresh = useCallback(() => {
     api.listBlogSilos(siteId).then(setSilos).catch((e) => setError(e.message));
@@ -43,6 +48,17 @@ export default function BlogPage({ siteId }: Props) {
       .catch(() => setSeoRecipes([]));
     setSeoContent('');
   }, [siteId, selectedPostId]);
+
+  useEffect(() => {
+    if (!selectedPostId) {
+      setSocialDraftCount(0);
+      return;
+    }
+    api
+      .listSocialDrafts(siteId, { sourcePostId: selectedPostId })
+      .then((d) => setSocialDraftCount(d.length))
+      .catch(() => setSocialDraftCount(0));
+  }, [siteId, selectedPostId, post?.status]);
 
   async function createPillar(e: React.FormEvent) {
     e.preventDefault();
@@ -240,6 +256,49 @@ export default function BlogPage({ siteId }: Props) {
                   {saving ? 'Saving…' : 'Save post'}
                 </button>
               </div>
+              {post.status === 'published' && (
+                <div className="panel" style={{ marginTop: '1rem' }}>
+                  <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem' }}>Social drafts</h3>
+                  {post.socialGenerationMeta && (
+                    <p className="dash-page__muted" style={{ fontSize: '0.85rem' }}>
+                      Last run #{post.socialGenerationMeta.runCount} · sections used:{' '}
+                      {post.socialGenerationMeta.usedSections.join(', ') || 'none'}
+                    </p>
+                  )}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={includeFullScreenCards}
+                      onChange={(e) => setIncludeFullScreenCards(e.target.checked)}
+                    />
+                    Include full-screen text cards this run
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={socialGenerating}
+                      onClick={() => {
+                        setSocialGenerating(true);
+                        void api
+                          .generateSocialDrafts(siteId, post.id, { includeFullScreenCards })
+                          .then(() => {
+                            setActiveSiteSection('social');
+                          })
+                          .catch((err) => setError(err.message))
+                          .finally(() => setSocialGenerating(false));
+                      }}
+                    >
+                      {socialGenerating ? 'Generating…' : 'Generate social drafts'}
+                    </button>
+                    {socialDraftCount > 0 && (
+                      <button type="button" className="secondary" onClick={() => setActiveSiteSection('social')}>
+                        View social drafts for this post →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
               <HumanizePanel
                 siteId={siteId}
                 contentHtml={post.bodyHtml}

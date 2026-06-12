@@ -29,6 +29,10 @@ export interface BlogPost {
   canonicalUrl?: string;
   order: number;
   publishedAt?: string;
+  socialGenerationMeta?: {
+    runCount: number;
+    usedSections: string[];
+  };
   createdAt: string;
   updatedAt: string;
 }

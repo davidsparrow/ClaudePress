@@ -4,13 +4,14 @@ import { api, type HumanizeResult, type HumanizerMode, type HumanizerSiteConfig 
 export interface HumanizePanelProps {
   siteId: string;
   contentHtml: string;
-  contentType?: 'blog' | 'email' | 'auto';
+  contentType?: 'blog' | 'email' | 'social' | 'auto';
   /** When set, uses resource-specific humanize endpoint */
   humanizeTarget?:
     | { kind: 'generic' }
     | { kind: 'blog'; postId: string }
     | { kind: 'slot'; pageId: string; slotId: string }
-    | { kind: 'campaign'; campaignId: string; stepId: string };
+    | { kind: 'campaign'; campaignId: string; stepId: string }
+    | { kind: 'social'; draftId: string };
   onAccept: (html: string) => void;
   compact?: boolean;
 }
@@ -87,6 +88,9 @@ export default function HumanizePanel({
             humanizeTarget.stepId,
             opts
           );
+          break;
+        case 'social':
+          res = await api.humanizeSocialDraft(siteId, humanizeTarget.draftId, opts);
           break;
         default:
           res = await api.humanizeContent(siteId, opts);

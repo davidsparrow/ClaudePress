@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const HumanizerModeSchema = z.enum(['simple', 'skill']);
 export type HumanizerMode = z.infer<typeof HumanizerModeSchema>;
 
-export const HumanizerContentTypeSchema = z.enum(['blog', 'email', 'auto']);
+export const HumanizerContentTypeSchema = z.enum(['blog', 'email', 'social', 'auto']);
 export type HumanizerContentType = z.infer<typeof HumanizerContentTypeSchema>;
 
 export const HumanizerSiteConfigSchema = z.object({

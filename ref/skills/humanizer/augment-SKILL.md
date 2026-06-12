@@ -21,7 +21,9 @@ When `blog`: apply universal AI markers plus blog structural rules (vary paragra
 
 When `email`: apply email-specific markers — lead with purpose or ask, one clear ask per email, cut AI greetings ("I hope this email finds you well"), cut stacked politeness, avoid corporate filler ("circle back", "touch base", "per our conversation"), match formality to a professional email.
 
-When `auto`: detect blog vs email from structure (subject line + greeting/sign-off → email; headings or long structured prose → blog).
+When `social`: apply platform-aware social caption rules — plain text only (no HTML), respect character limits (LinkedIn 3000, X 280, Instagram 2200, Facebook warn at 500), keep hashtags out of the caption body (they are added separately), hook in the first line, conversational tone, no thread-style numbering unless requested, emoji sparingly on Instagram only.
+
+When `auto`: detect blog vs email vs social from structure (subject line + greeting/sign-off → email; short plain-text caption with CTA → social; headings or long structured prose → blog).
 
 ## Blog and universal markers (summary)
 

@@ -85,8 +85,20 @@ interface DashboardContextValue extends DashboardState {
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<DashboardState>(loadPersistedState);
+export function DashboardProvider({
+  children,
+  initialSiteId,
+  initialSiteSection,
+}: {
+  children: ReactNode;
+  initialSiteId?: string;
+  initialSiteSection?: SiteSection;
+}) {
+  const [state, setState] = useState<DashboardState>(() => ({
+    ...loadPersistedState(),
+    ...(initialSiteId ? { selectedSiteId: initialSiteId, sidebarMode: 'sites' as const } : {}),
+    ...(initialSiteSection ? { activeSiteSection: initialSiteSection } : {}),
+  }));
 
   useEffect(() => {
     persistState(state);

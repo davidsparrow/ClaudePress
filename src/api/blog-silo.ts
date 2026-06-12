@@ -99,6 +99,7 @@ router.patch('/sites/:siteId/blog/posts/:postId', requireOwner, async (req, res)
       res.status(404).json({ error: 'Post not found' });
       return;
     }
+    const wasPublished = post.status === 'published';
     const patch = req.body as Partial<typeof post>;
     const merged = {
       ...post,
@@ -112,6 +113,10 @@ router.patch('/sites/:siteId/blog/posts/:postId', requireOwner, async (req, res)
       merged.publishedAt = new Date().toISOString();
     }
     const updated = await store.savePost(applyAutoSeo(merged));
+
+    const { maybeAutoGenerateSocial } = await import('./social-posts.js');
+    void maybeAutoGenerateSocial(siteId, postId, wasPublished, updated.status === 'published');
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Update failed' });

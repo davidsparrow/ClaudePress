@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { SiteMeta } from '../api';
 import { useDashboard } from '../context/DashboardContext';
+import { useAuth } from '../context/AuthContext';
 import {
   ADMIN_SECTION_LABELS,
   ADMIN_SECTIONS,
@@ -28,6 +29,12 @@ export default function Sidebar({
   showAddSite,
   addSiteForm,
 }: Props) {
+  const { role } = useAuth();
+  const isClient = role === 'client';
+  const visibleSiteSections = useMemo(
+    () => (isClient ? (['social'] as const) : SITE_SECTIONS),
+    [isClient]
+  );
   const {
     sidebarMode,
     sidebarCollapsed,
@@ -63,11 +70,15 @@ export default function Sidebar({
       aria-label="Dashboard navigation"
     >
       <div className="dash-sidebar__header">
-        {!sidebarCollapsed && (
-          <span className="dash-sidebar__brand">
-            {sidebarMode === 'admin' ? 'FreshPress Admin' : 'FreshPress'}
-          </span>
-        )}
+          {isClient ? (
+            <span className="dash-sidebar__brand">FreshPress</span>
+          ) : (
+            !sidebarCollapsed && (
+              <span className="dash-sidebar__brand">
+                {sidebarMode === 'admin' ? 'FreshPress Admin' : 'FreshPress'}
+              </span>
+            )
+          )}
         <button
           type="button"
           className="secondary dash-sidebar__collapse"
@@ -100,7 +111,7 @@ export default function Sidebar({
         </>
       ) : (
         <>
-          {!sidebarCollapsed && (
+          {!sidebarCollapsed && !isClient && (
             <>
               <button type="button" className="dash-sidebar__add" onClick={onAddSite}>
                 + Add Site
@@ -159,7 +170,7 @@ export default function Sidebar({
                 {!sidebarCollapsed && selectedSite.name}
               </div>
               <nav className="dash-sidebar__nav">
-                {SITE_SECTIONS.map((section) => (
+                {visibleSiteSections.map((section) => (
                   <button
                     key={section}
                     type="button"
@@ -176,11 +187,13 @@ export default function Sidebar({
             </>
           )}
 
-          <div className="dash-sidebar__footer">
-            <button type="button" className="secondary" onClick={switchToAdmin}>
-              {sidebarCollapsed ? '⚙' : 'Admin Settings'}
-            </button>
-          </div>
+          {!isClient && (
+            <div className="dash-sidebar__footer">
+              <button type="button" className="secondary" onClick={switchToAdmin}>
+                {sidebarCollapsed ? '⚙' : 'Admin Settings'}
+              </button>
+            </div>
+          )}
         </>
       )}
     </aside>

@@ -1,0 +1,209 @@
+Wave 10 — Social Content Pipeline + Admin User Profiles
+=======================================================
+
+AUTHORITATIVE PLAN (read first):
+  /Users/davidsparrow/.cursor/plans/social_content_pipeline_a17e5654.plan.md
+
+Repo: ClaudePress (FreshPress CMS)
+Branch: v4-enhancements (humanizer skill already merged here)
+
+---
+
+## Your mission
+
+Implement the Social Content Pipeline and basic Admin User Profiles in one cohesive build.
+The plan file above is the source of truth — follow its schemas, API matrix, and phased delivery.
+
+Goal: When an admin publishes a blog post, the system auto-generates platform-specific social
+drafts (LinkedIn, X, Instagram, Facebook). Admins configure accounts and review batches;
+clients edit drafts, copy fields to clipboard, and mark as posted externally.
+
+Copy-paste workflow only — NO OAuth, NO platform API publish in MVP.
+
+---
+
+## Before you code
+
+1. Read the full plan at the path above (especially Identity, Data model, API routes, Role-based UX).
+2. Explore these reference implementations in the repo:
+   - src/storage/campaigns.ts + src/api/campaigns.ts  (AI generation + step storage)
+   - src/storage/humanizer-config.ts                   (dual FS/Mongo store pattern)
+   - editor/src/pages/CampaignsPage.tsx                (draft editor, blur-save, HumanizePanel)
+   - editor/src/components/HumanizePanel.tsx           (humanize + detect AI)
+   - src/auth/middleware.ts                            (current owner/client auth — extend, don't replace blindly)
+3. Run `npm test && npm run build` before starting to confirm baseline passes.
+
+---
+
+## Build order (strict — each step should compile)
+
+### Step 1 — Identity & auth foundation
+- Add src/auth/types.ts (Workspace, WorkspaceUser, UserPreferences, AuthContext)
+- Add src/storage/workspace-users.ts (dual FS/Mongo; mirror humanizer-config pattern)
+- Session auth: email + password for admins; keep site password for clients
+- Bootstrap: first MASTER_KEY login creates workspace + owner user if none exists
+- Extend middleware: requireAdmin, requireSiteMember (admin OR client with site access)
+- Update editor Login.tsx: admin email login + client site password (keep both paths)
+- Workspace.planTier field + UI badge (free | pro | agency) — no billing integration
+
+Preference tiers (do NOT mix):
+  Workspace → plan tier, BYOK API keys (existing IntegrationsStore), workspace defaults
+  Site      → social accounts, humanizer tone/voice, style guide, Resend email
+  User      → display name, lastSiteId, defaultHumanizerMode (embedded on WorkspaceUser)
+
+Do NOT put API keys or social accounts on User profile.
+
+### Step 2 — Social storage & types
+- src/content/social-types.ts
+- src/storage/social-config.ts   (SocialSiteConfig per site)
+- src/storage/social-posts.ts    (SocialGenerationBatch + SocialPostDraft)
+- Extend BlogPost in src/content/silo-types.ts:
+    socialGenerationMeta?: { runCount: number; usedSections: string[] }
+
+### Step 3 — Social generator (backend)
+- src/social/generate.ts — AI variant generation via resolveAiKeys()
+- Platform rules: LinkedIn 3000, X 280, Instagram 2200, Facebook warn at 500
+- 2 variants per included platform account
+- Section/keyword rotation from blog H2/H3 outline; track usedSections on BlogPost
+- Hero image: first <img> in bodyHtml, else text-card fallback (Phase 2 for sharp cards)
+
+### Step 4 — Social API routes
+- src/api/social-posts.ts — mount in src/server.ts
+- Role guards per plan permission matrix (admin vs client)
+- Hook blog PATCH in src/api/blog-silo.ts: status → published triggers generate when enabled
+- Minimal media upload: POST /sites/:siteId/media/upload (multer already in deps)
+
+### Step 5 — Social UI components
+- editor/src/components/TagPillInput.tsx
+    Enter adds pill; × removes; tags[] stored separately from bodyText
+    Hashtags derived at display/copy: bodyText + "\n\n" + #tags
+- editor/src/components/SocialCopyPanel.tsx
+    Separate copy buttons: caption, hashtags, full post, link, image URLs
+    Use navigator.clipboard + "Copied!" toast (like SeoPromptsPanel)
+- editor/src/pages/SocialPage.tsx
+    Admin tabs: Pending review | Drafts | Published
+    Client view: Drafts only (hide generate, batch review, config)
+- Site Settings → Social Accounts section (SettingsPage)
+- BlogPage: "Generate social drafts" + link to social drafts when published
+
+### Step 6 — Images (Phase 2 in plan — implement if time permits)
+- Add sharp dependency
+- src/social/text-card.ts — 1080×1080 light/dark PNG from StyleGuide colors
+- Review checkboxes: include hero, light card, dark card
+- Image replace from media library modal
+
+### Step 7 — Humanizer extension
+- Add 'social' to HumanizerContentType in src/humanizer/types.ts
+- Extend augment-SKILL.md with platform length rules
+- HumanizePanel: optional humanizeTarget { kind: 'social', draftId }
+
+---
+
+## UX rules (non-negotiable)
+
+Admin sees: setup, generate, batch review, full edit, humanize, copy, mark posted.
+Client sees:  drafts list, edit caption + tags, copy panel, mark posted — nothing else.
+
+Tags: store tags[] separately; never parse hashtags back out of bodyText.
+Copy: per-field buttons, not one blob — users paste into platform editors piece by piece.
+Re-run: same blog post can generate again; each run targets a different section/angle.
+Published trigger: only when blog status is 'published', not draft saves.
+
+---
+
+## Explicitly OUT OF SCOPE (do not build)
+
+- OAuth / platform API connections or auto-posting
+- Per-user API keys (workspace vault only)
+- Social accounts on user profile (per-site only)
+- Billing / Stripe integration (planTier field only)
+- Multi-workspace per user
+- DALL-E / Flux image gen (Phase 3)
+- Side-by-side diff view for social variants
+
+---
+
+## Key files to create
+
+Backend:
+  src/auth/types.ts
+  src/storage/workspace-users.ts
+  src/content/social-types.ts
+  src/storage/social-config.ts
+  src/storage/social-posts.ts
+  src/social/generate.ts
+  src/social/text-card.ts          (Phase 2)
+  src/api/social-posts.ts
+  src/api/auth.ts                  (login, session, me)
+
+Frontend:
+  editor/src/components/TagPillInput.tsx
+  editor/src/components/SocialCopyPanel.tsx
+  editor/src/pages/SocialPage.tsx
+  editor/src/components/SocialAccountsSection.tsx  (or inline in SettingsPage)
+
+Extend:
+  src/auth/middleware.ts
+  src/content/silo-types.ts
+  src/api/blog-silo.ts
+  src/humanizer/types.ts
+  editor/src/context/dashboardTypes.ts  (add 'social' SiteSection)
+  editor/src/layout/DashboardShell.tsx
+  editor/src/api.ts
+  editor/src/components/Login.tsx
+
+---
+
+## Acceptance criteria
+
+- npm test && npm run build pass
+- Admin can add per-site social accounts with include checkbox
+- Publishing a blog post auto-creates a generation batch (when enabled + accounts included)
+- Admin can review batch, accept 1–2 variants per platform into drafts
+- Draft editor: caption, tag pills, per-field copy, humanize, mark as posted
+- Client login sees Social → Drafts only; can edit, copy, mark posted
+- Admin email login works; MASTER_KEY still works as bootstrap/break-glass
+- Re-run generation from same blog post uses a different section angle
+- API keys remain in workspace IntegrationsStore, not on user profile
+
+---
+
+## Testing checklist
+
+Unit:
+  - tag slugify / hashtag line builder
+  - platform char limit validation
+  - section rotation picks unused heading
+
+Integration:
+  - publish blog → batch for included accounts only
+  - accept variant → draft created with correct platform + accountId
+  - client role blocked from social-config and generate routes
+
+Manual:
+  - copy caption vs hashtags separately
+  - remove tag pill → hashtag copy updates
+  - client UI hides admin panels
+  - re-run generation → different targetKeywords / sourceSection
+
+---
+
+## Paste this into a new chat thread
+
+```
+Build Wave 10 — Social Content Pipeline + Admin User Profiles for ClaudePress.
+
+Read the authoritative plan first:
+/Users/davidsparrow/.cursor/plans/social_content_pipeline_a17e5654.plan.md
+
+Also read the build prompt:
+ref/prompts/wave-10-social-content-pipeline.txt
+
+Work on branch v4-enhancements. Follow the build order in the prompt.
+Match existing patterns (campaigns store, humanizer-config dual storage, CampaignsPage editor).
+Run npm test && npm run build before finishing.
+
+Start with Step 1 (identity & auth), then proceed sequentially.
+Do not build OAuth, billing, or per-user API keys.
+Keep client UX to Drafts + copy + mark posted only.
+```

@@ -22,6 +22,8 @@ import blogSiloRouter from './api/blog-silo.js';
 import campaignsRouter from './api/campaigns.js';
 import adminExportRouter from './api/admin-export.js';
 import humanizerRouter from './api/humanizer.js';
+import authRouter from './api/auth.js';
+import socialPostsRouter from './api/social-posts.js';
 import { getStorage } from './storage/filesystem.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
@@ -45,6 +47,8 @@ app.use('/api', blogSiloRouter);
 app.use('/api', campaignsRouter);
 app.use('/api', adminExportRouter);
 app.use('/api', humanizerRouter);
+app.use('/api', authRouter);
+app.use('/api', socialPostsRouter);
 
 /** Serve migrated WordPress media per site */
 app.use('/media/:siteId/wp-content/uploads', (req, res, next) => {
@@ -52,6 +56,16 @@ app.use('/media/:siteId/wp-content/uploads', (req, res, next) => {
   void (async () => {
     const storage = await getStorage();
     const base = join(storage.getSitePublicDir(siteId), 'wp-content', 'uploads');
+    express.static(base)(req, res, next);
+  })().catch(next);
+});
+
+/** Serve social-generated images per site */
+app.use('/media/:siteId/social-images', (req, res, next) => {
+  const siteId = req.params.siteId;
+  void (async () => {
+    const storage = await getStorage();
+    const base = join(storage.getSitePublicDir(siteId), 'social-images');
     express.static(base)(req, res, next);
   })().catch(next);
 });
