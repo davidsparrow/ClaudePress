@@ -5,6 +5,7 @@ import { AuthProvider, type AuthState } from './context/AuthContext';
 import Login from './components/Login';
 import DashboardShell from './layout/DashboardShell';
 import Editor from './components/Editor';
+import DemoBanner from './components/DemoBanner';
 
 type View =
   | { kind: 'login' }
@@ -19,12 +20,44 @@ function initialView(): View {
   return { kind: 'login' };
 }
 
+/** True when the editor is running against a demo instance (DEMO_MODE=1). */
+function isDemoHost(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('demo') === '1') return true;
+  const hostname = window.location.hostname;
+  return hostname === 'demo.freshpress.dev' || hostname.startsWith('demo.');
+}
+
 export default function App() {
   const [view, setView] = useState<View>(initialView);
   const [auth, setAuth] = useState<AuthState>(DEFAULT_AUTH);
-  const [restoring, setRestoring] = useState(() => getToken() !== null);
+  // Start in restoring state if there's a saved token OR this is a demo host
+  const [restoring, setRestoring] = useState(() => getToken() !== null || isDemoHost());
 
   useEffect(() => {
+    // Demo auto-login: obtain a session from the server without credentials
+    if (isDemoHost() && !getToken()) {
+      fetch('/api/demo/session')
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Demo session unavailable');
+          const data = (await res.json()) as {
+            token: string;
+            isDemo: boolean;
+            user: AuthState['user'];
+            workspace: AuthState['workspace'];
+          };
+          setToken(data.token);
+          setAuth({ role: 'admin', user: data.user, workspace: data.workspace, isDemo: true });
+          setView({ kind: 'dashboard' });
+        })
+        .catch(() => {
+          // Fall back to normal login if demo session isn't available
+          setView({ kind: 'login' });
+        })
+        .finally(() => setRestoring(false));
+      return;
+    }
+
     const token = getToken();
     if (!token) {
       setRestoring(false);
@@ -120,6 +153,7 @@ export default function App() {
   if (view.kind === 'dashboard') {
     return (
       <AuthProvider value={authValue}>
+        {authValue.isDemo && <DemoBanner />}
         <DashboardProvider
           initialSiteId={view.initialSiteId}
           initialSiteSection={view.initialSection}
@@ -132,6 +166,7 @@ export default function App() {
 
   return (
     <AuthProvider value={authValue}>
+      {authValue.isDemo && <DemoBanner />}
       <Editor
         siteId={view.siteId}
         onBack={() => setView({ kind: 'dashboard' })}

@@ -3,8 +3,11 @@ export function validateHostedProfile(): void {
   if (process.env.NODE_ENV === 'test') return;
   if (process.env.HOSTED !== '1') return;
 
+  // Demo mode: MASTER_KEY is not required — the demo session endpoint handles auth
+  const isDemo = process.env.DEMO_MODE === '1';
+
   const missing: string[] = [];
-  if (!process.env.MASTER_KEY) missing.push('MASTER_KEY');
+  if (!isDemo && !process.env.MASTER_KEY) missing.push('MASTER_KEY');
   if (!process.env.MONGODB_URI) missing.push('MONGODB_URI');
   if (!process.env.APP_URL) missing.push('APP_URL');
 

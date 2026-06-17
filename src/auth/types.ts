@@ -53,10 +53,14 @@ export interface AuthContext {
   siteId?: string;
   userRole?: WorkspaceUserRole;
   planTier?: PlanTier;
+  /** True for auto-sessions issued by GET /api/demo/session (DEMO_MODE=1 only). */
+  isDemo?: boolean;
 }
 
 export interface AuthMeResponse {
   role: AuthRole;
+  /** Set to true on tokens issued by GET /api/demo/session */
+  isDemo?: boolean;
   user?: {
     id: string;
     email: string;

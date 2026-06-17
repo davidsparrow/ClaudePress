@@ -24,6 +24,8 @@ import adminExportRouter from './api/admin-export.js';
 import humanizerRouter from './api/humanizer.js';
 import authRouter from './api/auth.js';
 import socialPostsRouter from './api/social-posts.js';
+import earlyAccessRouter from './api/early-access.js';
+import { demoGuard, demoAiLimiter } from './demo/middleware.js';
 import { getStorage } from './storage/filesystem.js';
 import type { PageContent, SlotChange } from './content/types.js';
 
@@ -33,6 +35,12 @@ const PORT = process.env.PORT ?? 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Demo mode: block destructive ops and rate-limit AI routes
+app.use('/api', demoGuard);
+app.use('/api/sites', demoAiLimiter);      // covers humanize, social generate, chat
+app.use('/api/admin/humanizer', demoAiLimiter);
+
 app.use('/api', sitesRouter);
 app.use('/api', publishRouter);
 app.use('/api', chatRouter);
@@ -49,6 +57,7 @@ app.use('/api', adminExportRouter);
 app.use('/api', humanizerRouter);
 app.use('/api', authRouter);
 app.use('/api', socialPostsRouter);
+app.use('/api', earlyAccessRouter);
 
 /** Serve migrated WordPress media per site */
 app.use('/media/:siteId/wp-content/uploads', (req, res, next) => {

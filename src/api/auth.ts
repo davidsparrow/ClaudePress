@@ -1,10 +1,21 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAdmin, extractBearer, hashPassword, verifyPassword } from '../auth/middleware.js';
 import { getWorkspaceUsersStore, hashSessionToken } from '../storage/workspace-users.js';
+import { DEMO_MODE } from '../demo/middleware.js';
 import type { AuthMeResponse } from '../auth/types.js';
 
 const router = Router();
 const MASTER_KEY = process.env.MASTER_KEY ?? '';
+
+/** Rate limiter for the demo session endpoint — prevents token-farming. */
+const demoSessionLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
 
 /** Email + password login; returns session token */
 router.post('/auth/login', async (req, res) => {
@@ -187,6 +198,50 @@ router.patch('/auth/me/preferences', requireAdmin, async (req, res) => {
     res.json({ preferences: user.preferences });
   } catch (err) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Update failed' });
+  }
+});
+
+/**
+ * Demo auto-login — DEMO_MODE=1 only.
+ *
+ * Returns a short-lived session token for the seeded demo@freshpress.dev user.
+ * No credentials required; rate-limited. The token is marked isDemo so the
+ * demoGuard middleware can identify demo sessions.
+ */
+router.get('/demo/session', demoSessionLimiter, async (req, res) => {
+  if (!DEMO_MODE) {
+    res.status(404).json({ error: 'Not found' });
+    return;
+  }
+
+  try {
+    const store = await getWorkspaceUsersStore();
+    const user = await store.getUserByEmail('demo@freshpress.dev');
+    const workspace = await store.getWorkspace();
+
+    if (!user || !workspace) {
+      res.status(503).json({ error: 'Demo not seeded. Run: npx tsx scripts/seed-demo.ts' });
+      return;
+    }
+
+    const { token } = await store.createSession(user.id, workspace.id);
+    res.json({
+      token,
+      isDemo: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+      },
+      workspace: {
+        id: workspace.id,
+        name: workspace.name,
+        planTier: workspace.planTier,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Demo session failed' });
   }
 });
 

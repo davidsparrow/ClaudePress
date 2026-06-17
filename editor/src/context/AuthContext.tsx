@@ -20,6 +20,8 @@ export interface AuthState {
   user?: AuthUser;
   workspace?: AuthWorkspace;
   siteId?: string;
+  /** True when the session was issued by GET /api/demo/session (DEMO_MODE=1). */
+  isDemo?: boolean;
 }
 
 const AuthContext = createContext<AuthState>({ role: 'admin' });
