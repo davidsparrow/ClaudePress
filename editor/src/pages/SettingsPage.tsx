@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { api, type SiteMeta, type SiteVersion } from '../api';
 import SiteEmailDelivery from '../components/SiteEmailDelivery';
 import ClientAccessInvite from '../components/ClientAccessInvite';
+import HumanizerSettingsSection from '../components/HumanizerSettingsSection';
+import SocialAccountsSection from '../components/SocialAccountsSection';
+import { useAuth } from '../context/AuthContext';
 
 interface Props {
   siteId: string;
@@ -15,6 +18,8 @@ interface PublishRow {
 }
 
 export default function SettingsPage({ siteId }: Props) {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
   const [meta, setMeta] = useState<SiteMeta | null>(null);
   const [versions, setVersions] = useState<SiteVersion[]>([]);
   const [publishes, setPublishes] = useState<PublishRow[]>([]);
@@ -108,6 +113,10 @@ export default function SettingsPage({ siteId }: Props) {
           <h3>Metadata</h3>
           <p className="dash-page__muted">Default SEO title, meta description, and OpenGraph image — TODO.</p>
         </section>
+
+        <HumanizerSettingsSection siteId={siteId} />
+
+        {isAdmin && <SocialAccountsSection siteId={siteId} />}
 
         <section className="panel settings-card settings-card--full">
           <SiteEmailDelivery siteId={siteId} />

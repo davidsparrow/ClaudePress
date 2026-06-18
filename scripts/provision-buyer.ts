@@ -18,7 +18,7 @@ function arg(name: string): string | undefined {
 async function main() {
   const slug = arg('slug');
   const name = arg('name') ?? slug;
-  const domain = arg('domain') ?? `${slug}-cms.freshpress.app`;
+  const domain = arg('domain') ?? `${slug}-cms.freshpress.dev`;
 
   if (!slug) {
     console.error('Usage: --slug acme --name "Acme Agency" --domain acme-cms.example.com');
@@ -59,12 +59,14 @@ MASTER_KEY: ${masterKey}
 
 ## Env (set on Railway/Fly)
 
+\`\`\`
 HOSTED=1
 MASTER_KEY=${masterKey}
 MONGODB_URI=mongodb+srv://USER:PASS@cluster.mongodb.net/${mongoDb}
 APP_URL=${appUrl}
 DATA_DIR=/data
 FRESHPRESS_DB_NAME=${mongoDb}
+\`\`\`
 
 ## Next steps
 
@@ -72,7 +74,11 @@ FRESHPRESS_DB_NAME=${mongoDb}
 2. Create Railway service + volume at /data
 3. Set env vars above
 4. Deploy; verify ${appUrl}/api/health
-5. Send buyer BUYER-SETUP.md
+5. Run onboarding seed on the live instance:
+   \`\`\`
+   MONGODB_URI=<uri> FRESHPRESS_DB_NAME=${mongoDb} npx tsx scripts/seed-demo.ts --buyer
+   \`\`\`
+6. Send buyer BUYER-SETUP.md
 
 `;
 

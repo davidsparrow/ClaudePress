@@ -1,0 +1,8 @@
+# Technical Illustration Prompt:
+Create a technical infographic of [OBJECT] with a 45-degree isometric 3D perspective showing the device slightly tilted to reveal depth and dimension. Combine a realistic photoreal render with black ink technical annotations on pure white background. Include: Key component labels with color-coded callout boxes Internal component visibility
+
+
+# Photo-realistic Product Prompt:
+[PRODUCT] in swirling liquid with lemon slices.
+Hyper-realistic neon [PRODUCT] floating mid-air, [COLOR] [PRODUCT or PRODUCT PACKAGE] with glowing green typography, explosive [THINGS] and [LIQUID or ELEMENT] frozen in motion, vibrant acid-green glow, vapor smoke rising, futuristic cyber grid background, high contrast lighting, ultra-detailed droplets, cinematic product photography, 3D render, sharp focus, high saturation, sci-fi commercial aesthetic.
+

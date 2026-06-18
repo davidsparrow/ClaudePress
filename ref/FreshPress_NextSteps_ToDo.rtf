@@ -1,7 +1,14 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2709
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\froman\fcharset0 Times-Bold;\f2\froman\fcharset0 Times-Roman;
+\f3\fmodern\fcharset0 Courier;\f4\fmodern\fcharset0 Courier-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid2}
+{\list\listtemplateid3\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid201\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid3}
+{\list\listtemplateid4\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid301\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid4}
+{\list\listtemplateid5\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid401\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid5}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}{\listoverride\listid3\listoverridecount0\ls3}{\listoverride\listid4\listoverridecount0\ls4}{\listoverride\listid5\listoverridecount0\ls5}}
 \margl1440\margr1440\vieww11520\viewh8400\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
@@ -22,4 +29,151 @@ Recommended next steps (before first sale)\
 	5	Decide delivery:\'a0GitHub org Read\'a0vs\'a0release zip.\
 	6	Lawyer review\'a0of EULA for your jurisdiction and price point.\
 If you want, I can draft\'a0COMMERCIAL-LICENSE.md,\'a0docs/BUYER-SETUP.md, and README license section in the repo \'97 say the word and whether you prefer\'a0subscription + repo access\'a0or\'a0one-time + zip.\
+\'97\'97\
+Social Content Pipeline :\
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f1\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Gaps to address in MVP\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls1\ilvl0
+\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Media upload:
+\f2\b0  today only WP import \'97 add 
+\f3\fs26 POST /sites/:siteId/media/upload
+\f2\fs24  (multer already in deps) for image replacement, or media-picker from existing library only for v1.\
+\ls1\ilvl0
+\f1\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Humanizer 
+\f4\fs26 social
+\f1\fs24  content type:
+\f2\b0  extend augment skill with platform length rules.\
+\ls1\ilvl0
+\f4\b\fs26 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 scheduled
+\f1\fs24  blog status:
+\f2\b0  not enforced \'97 social trigger uses 
+\f3\fs26 published
+\f2\fs24  only.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f1\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Phased delivery done:\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\fs28 \cf0 Phase 1 \'97 Core pipeline (MVP)\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls2\ilvl0
+\f2\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Social config + accounts\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Generate on publish + manual re-run\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Batch review \uc0\u8594  drafts\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Draft editor: text, tags (pills), per-field copy\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Hero from blog image or text card fallback\
+\ls2\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Mark published\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f1\b\fs28 \cf0 \strokec2 Phase 2 \'97 Rich images\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls3\ilvl0
+\f2\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Light/dark full-screen text cards (sharp)\
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Image replace from media library\
+\ls3\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Regenerate cards from edited caption\
+\pard\pardeftab720\sa280\partightenfactor0
+
+\f1\b\fs28 \cf0 \strokec2 Phase 3 \'97 Polish\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls4\ilvl0
+\f2\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Humanizer social content type\
+\ls4\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 AI detection on caption\
+\ls4\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Duplicate-angle warnings\
+\ls4\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Optional DALL-E hero via BYOK\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\pard\pardeftab720\sa298\partightenfactor0
+
+\f1\b\fs36 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Some tests\'85\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\ls5\ilvl0
+\f2\b0\fs24 \cf0 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Unit: tag slugify, combined copy text builder, platform char limits\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Unit: section rotation picks unused heading\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Integration: publish blog \uc0\u8594  batch created for included accounts only\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Integration: accept 1 of 2 variants \uc0\u8594  single draft per platform\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Manual: copy caption vs hashtags separately into LinkedIn/Instagram\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Manual: remove tag pill \uc0\u8594  hashtags line updates; copy hashtags reflects change\
+\ls5\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Manual: re-run generation from same blog \uc0\u8594  different section in prompt output\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\cf0 \'97\'97\
+Demo.freshpress.dev creation 1-time Railway Provisioning OPS:\
+/Users/davidsparrow/Documents/_appDevelopment/Dev/ClaudePress/docs/DEMO-INSTANCE.md\
+\'97\
+\pard\pardeftab720\sa321\partightenfactor0
+
+\f1\b\fs48 \cf0 \strokec2 Demo, Deployment, and Two-Repo Distribution Plan:
+\f2\b0\fs24 \strokec2 \
+\pard\tx220\tx720\pardeftab720\li720\fi-720\sa240\partightenfactor0
+\cf0 /Users/davidsparrow/.cursor/plans/demo_and_distribution_ecosystem_f2f3284e.plan.md\
+---\
+\
+## What was implemented\
+\
+### Docs (`docs-ecosystem`)\
+- `docs/DEPLOYMENT-ECOSYSTEM.md` \'97 single buyer-facing map of all deployment levels (local dev, self-hosted, vendor-hosted, end client, source license), platform roles and costs, environment variable reference\
+- `docs/DISTRIBUTION-REPOS.md` \'97 dev vs release repo split, what goes where, release workflow, buyer access model, CHANGELOG format\
+- `docs/DEMO-INSTANCE.md` \'97 full Railway provisioning checklist, nightly reset options (Railway cron, GitHub Action, HTTP trigger), Early Access lead export, rate limiting policy\
+- `EULA.md` \'97 proprietary license draft (marked for attorney review before first sale)\
+- `CHANGELOG.md` \'97 buyer-facing changelog starting at v0.10.0\
+\
+### Seed data (`seed-package`)\
+- `scripts/seed-demo.ts` \'97 idempotent script that populates: workspace, demo admin user, "Acme Plumbing & HVAC" site, a published blog post, a social batch with 3 pending variants (LinkedIn, X, Facebook), one promoted LinkedIn draft. Supports `--reset` (wipe + re-seed, MongoDB only) and `--buyer` (buyer onboarding variant with random temp password and onboarding checklist).\
+\
+### Backend demo mode (`demo-mode-backend`)\
+- `src/demo/middleware.ts` \'97 `demoGuard` middleware blocks bootstrap, integrations write, real publish, site delete, and WordPress import when `DEMO_MODE=1`. Also exports `demoAiLimiter` (20 req/IP/hour for AI routes in demo mode).\
+- `src/api/early-access.ts` \'97 `POST /api/early-access` with `express-rate-limit` (5/hour in demo mode). Upserts leads to `early_access_leads` Mongo collection. Optional Resend notify via `RESEND_EARLY_ACCESS_NOTIFY`.\
+- `src/api/auth.ts` \'97 Added `GET /api/demo/session` (rate-limited, only active when `DEMO_MODE=1`). Issues a real session token for `demo@freshpress.com` without requiring credentials.\
+- `src/auth/types.ts` \'97 Added `isDemo?: boolean` to `AuthContext` and `AuthMeResponse`.\
+- `src/hosted/validate.ts` \'97 Demo mode skips `MASTER_KEY` requirement at boot.\
+- `src/server.ts` \'97 Mounts `demoGuard`, `demoAiLimiter`, and `earlyAccessRouter`.\
+\
+### Frontend demo mode (`demo-mode-frontend`)\
+- `editor/src/components/DemoBanner.tsx` \'97 sticky banner with "Demo" badge, "changes reset nightly" message, and "Get Early Access" button. Clicking opens an email capture modal that POSTs to `/api/early-access`.\
+- `editor/src/context/AuthContext.tsx` \'97 Added `isDemo?: boolean` to `AuthState`.\
+- `editor/src/App.tsx` \'97 `isDemoHost()` detection (checks hostname or `?demo=1`). On demo hosts, calls `GET /api/demo/session` before showing anything, auto-logs in, and renders the dashboard directly. `DemoBanner` renders when `auth.isDemo` is true.\
+- `editor/src/index.css` \'97 Styles for `.demo-banner`, `.demo-modal-overlay`, `.demo-modal`, and shared `.btn` modifiers.\
+\
+### Buyer onboarding (`buyer-onboarding-seed`)\
+- `scripts/provision-buyer.ts` \'97 Handoff template now includes the `seed-demo.ts --buyer` command for post-provision seeding.\
+- `docs/BUYER-SETUP.md` \'97 Updated to describe the sample site, AI provider setup, and link to ecosystem docs.\
+\
+### Release workflow (`release-repo`)\
+- `scripts/promote-release.sh` \'97 Runnable shell script: validates clean `main`, runs `npm test && npm run build`, creates a git tag, pushes it to `freshpress-release` remote, creates a GitHub Release if `gh` CLI is available and a `CHANGELOG.md` entry exists. Supports `--init` for first-time force-push.\
+- `.gitattributes` \'97 Marks `data/vendor/`, `ref/prompts/`, `scripts/promote-release.sh`, and `.env*` as `export-ignore` so they're stripped from GitHub archive/zip downloads.\
+\
+### Railway provisioning (`demo-railway`)\
+The code is complete and ready. The actual Railway service creation for `demo.freshpress.com` is a one-time ops task \'97 the full checklist is in `docs/DEMO-INSTANCE.md`.\
+\'97\
 }

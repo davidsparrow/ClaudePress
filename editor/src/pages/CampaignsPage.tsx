@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { api, type BlogSilo } from '../api';
+import { api, type BlogSilo, type CampaignStep } from '../api';
+import HumanizePanel from '../components/HumanizePanel';
 
 interface Props {
   siteId: string;
@@ -8,7 +9,11 @@ interface Props {
 export default function CampaignsPage({ siteId }: Props) {
   const [silos, setSilos] = useState<BlogSilo[]>([]);
   const [campaigns, setCampaigns] = useState<Array<{ id: string; name: string; status: string; keyword: string }>>([]);
-  const [selected, setSelected] = useState<{ campaign: { id: string; name: string }; steps: Array<{ subject: string; previewText: string; delayDays: number }> } | null>(null);
+  const [selected, setSelected] = useState<{
+    campaign: { id: string; name: string; status?: string };
+    steps: CampaignStep[];
+  } | null>(null);
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +32,7 @@ export default function CampaignsPage({ siteId }: Props) {
     try {
       const res = await api.createCampaign(siteId, pillarId);
       setSelected({ campaign: res.campaign, steps: res.steps });
+      setSelectedStepId(res.steps[0]?.id ?? null);
       refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Create failed');
@@ -38,6 +44,7 @@ export default function CampaignsPage({ siteId }: Props) {
   async function openCampaign(id: string) {
     const res = await api.getCampaign(siteId, id);
     setSelected({ campaign: res.campaign, steps: res.steps });
+    setSelectedStepId(res.steps[0]?.id ?? null);
   }
 
   async function activate(id: string) {
@@ -93,16 +100,128 @@ export default function CampaignsPage({ siteId }: Props) {
           {selected && (
             <div className="panel">
               <h3>{selected.campaign.name}</h3>
-              {selected.steps.map((s, i) => (
-                <div key={i} className="blog-silo" style={{ marginTop: '0.75rem' }}>
-                  <strong>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                {selected.steps.map((s, i) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={s.id === selectedStepId ? '' : 'secondary'}
+                    onClick={() => setSelectedStepId(s.id)}
+                  >
                     Email {i + 1}
-                    {s.delayDays > 0 ? ` — wait ${s.delayDays}d` : ''}
-                  </strong>
-                  <p>{s.subject}</p>
-                  <p className="dash-page__muted">{s.previewText}</p>
-                </div>
-              ))}
+                  </button>
+                ))}
+              </div>
+              {selected.steps
+                .filter((s) => s.id === selectedStepId)
+                .map((s) => (
+                  <div key={s.id}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+                      Subject
+                      <input
+                        value={s.subject}
+                        onChange={(e) => {
+                          const subject = e.target.value;
+                          setSelected((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  steps: prev.steps.map((st) =>
+                                    st.id === s.id ? { ...st, subject } : st
+                                  ),
+                                }
+                              : prev
+                          );
+                        }}
+                        onBlur={() =>
+                          void api.updateCampaignStep(siteId, selected.campaign.id, s.id, {
+                            subject: s.subject,
+                          })
+                        }
+                        style={{ width: '100%', marginTop: '0.25rem' }}
+                      />
+                    </label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+                      Preview text
+                      <input
+                        value={s.previewText}
+                        onChange={(e) => {
+                          const previewText = e.target.value;
+                          setSelected((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  steps: prev.steps.map((st) =>
+                                    st.id === s.id ? { ...st, previewText } : st
+                                  ),
+                                }
+                              : prev
+                          );
+                        }}
+                        onBlur={() =>
+                          void api.updateCampaignStep(siteId, selected.campaign.id, s.id, {
+                            previewText: s.previewText,
+                          })
+                        }
+                        style={{ width: '100%', marginTop: '0.25rem' }}
+                      />
+                    </label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+                      Body HTML
+                      <textarea
+                        rows={8}
+                        value={s.bodyHtml}
+                        onChange={(e) => {
+                          const bodyHtml = e.target.value;
+                          setSelected((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  steps: prev.steps.map((st) =>
+                                    st.id === s.id ? { ...st, bodyHtml } : st
+                                  ),
+                                }
+                              : prev
+                          );
+                        }}
+                        onBlur={() =>
+                          void api.updateCampaignStep(siteId, selected.campaign.id, s.id, {
+                            bodyHtml: s.bodyHtml,
+                          })
+                        }
+                        style={{ width: '100%', marginTop: '0.25rem', fontFamily: 'monospace', fontSize: '0.85rem' }}
+                      />
+                    </label>
+                    <p className="dash-page__muted">
+                      Wait {s.delayDays} day{s.delayDays === 1 ? '' : 's'} after previous email
+                    </p>
+                    <HumanizePanel
+                      siteId={siteId}
+                      contentHtml={s.bodyHtml}
+                      contentType="email"
+                      humanizeTarget={{
+                        kind: 'campaign',
+                        campaignId: selected.campaign.id,
+                        stepId: s.id,
+                      }}
+                      onAccept={(html) => {
+                        setSelected((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                steps: prev.steps.map((st) =>
+                                  st.id === s.id ? { ...st, bodyHtml: html } : st
+                                ),
+                              }
+                            : prev
+                        );
+                        void api.updateCampaignStep(siteId, selected.campaign.id, s.id, {
+                          bodyHtml: html,
+                        });
+                      }}
+                    />
+                  </div>
+                ))}
               <button type="button" style={{ marginTop: '1rem' }} disabled={loading} onClick={() => void activate(selected.campaign.id)}>
                 Activate in Resend
               </button>

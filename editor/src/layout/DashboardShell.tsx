@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type SiteMeta } from '../api';
 import { useDashboard } from '../context/DashboardContext';
+import { useAuth } from '../context/AuthContext';
 import type { AdminSection } from '../context/dashboardTypes';
 import Editor from '../components/Editor';
 import Sidebar from './Sidebar';
@@ -14,6 +15,7 @@ import SettingsPage from '../pages/SettingsPage';
 import BlogPage from '../pages/BlogPage';
 import SeoPage from '../pages/SeoPage';
 import CampaignsPage from '../pages/CampaignsPage';
+import SocialPage from '../pages/SocialPage';
 import AdminPage from '../pages/admin/AdminPage';
 import AdminIntegrationsPage from '../pages/admin/AdminIntegrationsPage';
 import AdminAiProvidersPage from '../pages/admin/AdminAiProvidersPage';
@@ -23,6 +25,8 @@ interface Props {
 }
 
 export default function DashboardShell({ onLogout }: Props) {
+  const auth = useAuth();
+  const isClient = auth.role === 'client';
   const {
     selectedSiteId,
     sidebarMode,
@@ -42,6 +46,16 @@ export default function DashboardShell({ onLogout }: Props) {
   const [newDomain, setNewDomain] = useState('');
 
   const refreshSites = useCallback(() => {
+    if (isClient && auth.siteId) {
+      return api
+        .getSite(auth.siteId)
+        .then((s) => {
+          setSites([s.meta]);
+          validateSelectedSite([s.meta.id]);
+          return [s.meta];
+        })
+        .catch((e) => setError(e.message));
+    }
     return api
       .listSites()
       .then((list) => {
@@ -50,11 +64,27 @@ export default function DashboardShell({ onLogout }: Props) {
         return list;
       })
       .catch((e) => setError(e.message));
-  }, [validateSelectedSite]);
+  }, [validateSelectedSite, isClient, auth.siteId]);
 
   useEffect(() => {
     refreshSites().finally(() => setLoading(false));
   }, [refreshSites]);
+
+  useEffect(() => {
+    function onNavigate(e: Event) {
+      const detail = (e as CustomEvent<{ siteSection?: string; hash?: string }>).detail;
+      if (detail?.siteSection === 'settings') {
+        setActiveSiteSection('settings');
+        if (detail.hash) {
+          requestAnimationFrame(() => {
+            document.getElementById(detail.hash!)?.scrollIntoView({ behavior: 'smooth' });
+          });
+        }
+      }
+    }
+    window.addEventListener('freshpress:navigate', onNavigate);
+    return () => window.removeEventListener('freshpress:navigate', onNavigate);
+  }, [setActiveSiteSection]);
 
   const selectedSite = sites.find((s) => s.id === selectedSiteId) ?? null;
   const editorFocus = sidebarMode === 'sites' && activeSiteSection === 'editor' && !!selectedSiteId;
@@ -91,7 +121,34 @@ export default function DashboardShell({ onLogout }: Props) {
       workspace: {
         title: 'Workspace',
         description: 'Agency name, timezone, and workspace overview.',
-        body: <p>Agency name and default timezone — TODO.</p>,
+        body: (
+          <div>
+            {auth.workspace && (
+              <p>
+                <strong>{auth.workspace.name}</strong>{' '}
+                <span
+                  style={{
+                    fontSize: '0.75rem',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '4px',
+                    background: 'var(--border)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {auth.workspace.planTier}
+                </span>
+              </p>
+            )}
+            {auth.user && (
+              <p className="dash-page__muted">
+                Signed in as {auth.user.displayName} ({auth.user.email})
+              </p>
+            )}
+            {!auth.workspace && (
+              <p className="dash-page__muted">No workspace configured — use master key bootstrap.</p>
+            )}
+          </div>
+        ),
       },
       users: {
         title: 'Users',
@@ -193,6 +250,8 @@ export default function DashboardShell({ onLogout }: Props) {
         return <BlogPage siteId={selectedSiteId} />;
       case 'campaigns':
         return <CampaignsPage siteId={selectedSiteId} />;
+      case 'social':
+        return <SocialPage siteId={selectedSiteId} />;
       case 'seo':
         return <SeoPage siteId={selectedSiteId} />;
       case 'publishes':

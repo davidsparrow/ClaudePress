@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import { join, extname } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import multer from 'multer';
 import { nanoid } from 'nanoid';
 import { getStorage } from '../storage/filesystem.js';
 import { ingestUrl } from '../ingest/index.js';
@@ -216,6 +219,57 @@ router.get('/sites/:siteId/media', siteAuth, async (req, res) => {
       createdAt: asset.createdAt,
     }))
   );
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Only image uploads are allowed'));
+  },
+});
+
+router.post('/sites/:siteId/media/upload', siteAuth, upload.single('file'), async (req, res) => {
+  try {
+    const siteId = routeParam(req.params.siteId);
+    if (!req.file) {
+      res.status(400).json({ error: 'file is required' });
+      return;
+    }
+    const storage = await getStorage();
+    const site = await storage.getSite(siteId);
+    if (!site) {
+      res.status(404).json({ error: 'Site not found' });
+      return;
+    }
+
+    const ext = extname(req.file.originalname) || '.png';
+    const filename = `${nanoid(10)}${ext}`;
+    const relativePath = `uploads/${filename}`;
+    const publicDir = join(storage.getSitePublicDir(siteId), 'wp-content', 'uploads');
+    await mkdir(publicDir, { recursive: true });
+    await writeFile(join(publicDir, filename), req.file.buffer);
+
+    const asset = await storage.upsertMediaAsset(siteId, {
+      id: nanoid(12),
+      filename,
+      publicPath: `/media/${siteId}/wp-content/uploads/${filename}`,
+      relativePath,
+      mimeType: req.file.mimetype,
+    });
+
+    res.status(201).json({
+      id: asset.id,
+      filename: asset.filename,
+      publicPath: asset.publicPath,
+      relativePath: asset.relativePath,
+      mimeType: asset.mimeType,
+      createdAt: asset.createdAt,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Upload failed' });
+  }
 });
 
 // ── Versions ───────────────────────────────────────────────────

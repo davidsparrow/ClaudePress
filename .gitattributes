@@ -1,0 +1,6 @@
+# Paths excluded from git archive / GitHub zip downloads.
+# These are vendor-internal and must not ship in release zips.
+data/vendor/ export-ignore
+ref/prompts/ export-ignore
+scripts/promote-release.sh export-ignore
+.env* export-ignore

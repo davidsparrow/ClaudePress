@@ -57,6 +57,7 @@ export interface BlogPost {
   metaDescription?: string;
   order: number;
   publishedAt?: string;
+  socialGenerationMeta?: { runCount: number; usedSections: string[] };
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +78,54 @@ export interface BlogSilo {
   posts: BlogPost[];
 }
 
+export type HumanizerMode = 'simple' | 'skill';
+
+export interface HumanizerReviewScore {
+  score: number;
+  note: string;
+}
+
+export interface HumanizerReview {
+  contentType: string;
+  assessment: string;
+  scores: Record<string, HumanizerReviewScore>;
+  patternFlags: Array<{ quote: string; suggestion: string }>;
+  topChanges: string[];
+}
+
+export interface HumanizeResult {
+  humanizedHtml: string;
+  mode: HumanizerMode;
+  review?: HumanizerReview;
+}
+
+export interface HumanizerSiteConfig {
+  siteId: string;
+  mode: HumanizerMode;
+  tone: string;
+  readingLevel: string;
+  voiceSample?: string;
+  customAugment?: string;
+  contentTypeHint?: 'blog' | 'email' | 'auto';
+  updatedAt: string;
+}
+
+export interface CampaignStep {
+  id: string;
+  subject: string;
+  previewText: string;
+  bodyHtml: string;
+  delayDays: number;
+  order: number;
+}
+
+export interface HumanizeRequestOptions {
+  mode?: HumanizerMode;
+  includeReview?: boolean;
+  html?: string;
+  contentType?: 'blog' | 'email' | 'social' | 'auto';
+}
+
 export interface PublishRecord {
   id: string;
   siteId: string;
@@ -88,7 +137,74 @@ export interface PublishRecord {
   vercelDeploymentId?: string;
 }
 
+export type SocialPlatform = 'linkedin' | 'x' | 'instagram' | 'facebook';
+
+export interface SocialAccount {
+  id: string;
+  platform: SocialPlatform;
+  label: string;
+  profileUrl?: string;
+  included: boolean;
+}
+
+export interface SocialSiteConfig {
+  siteId: string;
+  accounts: SocialAccount[];
+  autoGenerateOnPublish: boolean;
+  defaultFullScreenCards: boolean;
+  updatedAt: string;
+}
+
+export interface SocialVariant {
+  id: string;
+  platform: SocialPlatform;
+  variantIndex: 1 | 2;
+  bodyText: string;
+  suggestedTags: string[];
+  images: {
+    hero?: { url: string };
+    textCardLight?: { url: string };
+    textCardDark?: { url: string };
+  };
+}
+
+export interface SocialGenerationBatch {
+  id: string;
+  siteId: string;
+  sourcePostId: string;
+  generationRun: number;
+  sourceSection: string;
+  targetKeywords: string[];
+  status: string;
+  variants: SocialVariant[];
+  createdAt: string;
+}
+
+export interface SocialPostDraft {
+  id: string;
+  siteId: string;
+  sourcePostId: string;
+  batchId: string;
+  platform: SocialPlatform;
+  accountId: string;
+  bodyText: string;
+  tags: string[];
+  status: 'draft' | 'published';
+  targetKeywords: string[];
+  sourceSection: string;
+  generationRun: number;
+  images: {
+    hero?: string;
+    textCardLight?: string;
+    textCardDark?: string;
+  };
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const TOKEN_KEY = 'freshpress_token';
+const CLIENT_SITE_KEY = 'freshpress_client_site';
 const LEGACY_TOKEN_KEYS = ['presspal_token', 'claudepress_token'] as const;
 
 export function getToken(): string | null {
@@ -114,9 +230,19 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(CLIENT_SITE_KEY);
   for (const legacyKey of LEGACY_TOKEN_KEYS) {
     localStorage.removeItem(legacyKey);
   }
+}
+
+export function getClientSiteId(): string | null {
+  return localStorage.getItem(CLIENT_SITE_KEY);
+}
+
+export function setClientSiteId(siteId: string | null): void {
+  if (siteId) localStorage.setItem(CLIENT_SITE_KEY, siteId);
+  else localStorage.removeItem(CLIENT_SITE_KEY);
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -361,13 +487,72 @@ export const api = {
       pageUrl: string;
       keyword: string;
     }>(`/sites/${siteId}/blog/posts/${postId}/seo-recipes`),
-  detectBlogAi: (siteId: string, postId: string) =>
+  detectBlogAi: (siteId: string, postId: string, html?: string) =>
     request<{ score: number; provider: string; note?: string }>(
       `/sites/${siteId}/blog/posts/${postId}/detect-ai`,
-      { method: 'POST' }
+      { method: 'POST', body: JSON.stringify(html ? { html } : {}) }
     ),
-  humanizeBlogPost: (siteId: string, postId: string) =>
-    request<{ humanizedHtml: string }>(`/sites/${siteId}/blog/posts/${postId}/humanize`, {
+  detectAiContent: (siteId: string, html: string) =>
+    request<{ score: number; provider: string; note?: string }>(
+      `/sites/${siteId}/humanizer/detect-ai`,
+      { method: 'POST', body: JSON.stringify({ html }) }
+    ),
+  humanizeBlogPost: (siteId: string, postId: string, opts?: HumanizeRequestOptions) =>
+    request<HumanizeResult>(`/sites/${siteId}/blog/posts/${postId}/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts ?? {}),
+    }),
+  humanizeContent: (siteId: string, opts: HumanizeRequestOptions & { html: string }) =>
+    request<HumanizeResult>(`/sites/${siteId}/humanizer/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts),
+    }),
+  humanizePageSlot: (
+    siteId: string,
+    pageId: string,
+    slotId: string,
+    opts?: HumanizeRequestOptions
+  ) =>
+    request<HumanizeResult>(`/sites/${siteId}/pages/${pageId}/slots/${slotId}/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts ?? {}),
+    }),
+  humanizeCampaignStep: (
+    siteId: string,
+    campaignId: string,
+    stepId: string,
+    opts?: HumanizeRequestOptions
+  ) =>
+    request<HumanizeResult>(
+      `/sites/${siteId}/campaigns/${campaignId}/steps/${stepId}/humanize`,
+      { method: 'POST', body: JSON.stringify(opts ?? {}) }
+    ),
+  updateCampaignStep: (
+    siteId: string,
+    campaignId: string,
+    stepId: string,
+    body: Partial<CampaignStep>
+  ) =>
+    request<CampaignStep>(`/sites/${siteId}/campaigns/${campaignId}/steps/${stepId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  getHumanizerConfig: (siteId: string) =>
+    request<{
+      config: HumanizerSiteConfig;
+      upstream: { version: string; syncedAt: string } | null;
+    }>(`/sites/${siteId}/humanizer-config`),
+  updateHumanizerConfig: (siteId: string, body: Partial<HumanizerSiteConfig>) =>
+    request<HumanizerSiteConfig>(`/sites/${siteId}/humanizer-config`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  getHumanizerPromptPreview: (siteId: string) =>
+    request<{ length: number; estimatedTokens: number }>(
+      `/sites/${siteId}/humanizer/prompt-preview`
+    ),
+  syncHumanizerUpstream: () =>
+    request<{ version: string; syncedAt: string }>('/admin/humanizer/sync-upstream', {
       method: 'POST',
     }),
   listRssFeeds: (siteId: string) =>
@@ -384,12 +569,12 @@ export const api = {
   createCampaign: (siteId: string, pillarId: string) =>
     request<{
       campaign: { id: string; name: string };
-      steps: Array<{ subject: string; previewText: string; delayDays: number }>;
+      steps: CampaignStep[];
     }>(`/sites/${siteId}/campaigns`, { method: 'POST', body: JSON.stringify({ pillarId }) }),
   getCampaign: (siteId: string, campaignId: string) =>
     request<{
-      campaign: { id: string; name: string };
-      steps: Array<{ subject: string; previewText: string; delayDays: number }>;
+      campaign: { id: string; name: string; status?: string };
+      steps: CampaignStep[];
     }>(`/sites/${siteId}/campaigns/${campaignId}`),
   activateCampaign: (siteId: string, campaignId: string) =>
     request<{ campaign: { id: string }; automationId?: string }>(
@@ -400,4 +585,78 @@ export const api = {
     request<{ id: string; title: string; content: string; pageUrl: string; keyword: string }>(
       `/sites/${siteId}/blog/posts/${postId}/seo-recipes/${recipeId}`
     ),
+
+  getSocialConfig: (siteId: string) => request<SocialSiteConfig>(`/sites/${siteId}/social-config`),
+  updateSocialConfig: (siteId: string, body: Partial<SocialSiteConfig>) =>
+    request<SocialSiteConfig>(`/sites/${siteId}/social-config`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+  generateSocialDrafts: (siteId: string, postId: string, opts?: { includeFullScreenCards?: boolean }) =>
+    request<{ batch: SocialGenerationBatch; overlapWarning?: { run: number } }>(
+      `/sites/${siteId}/blog/posts/${postId}/social/generate`,
+      { method: 'POST', body: JSON.stringify(opts ?? {}) }
+    ),
+  listSocialBatches: (siteId: string, filters?: { sourcePostId?: string; status?: string }) => {
+    const q = new URLSearchParams();
+    if (filters?.sourcePostId) q.set('sourcePostId', filters.sourcePostId);
+    if (filters?.status) q.set('status', filters.status);
+    const qs = q.toString();
+    return request<SocialGenerationBatch[]>(`/sites/${siteId}/social/batches${qs ? `?${qs}` : ''}`);
+  },
+  getSocialBatch: (siteId: string, batchId: string) =>
+    request<SocialGenerationBatch>(`/sites/${siteId}/social/batches/${batchId}`),
+  acceptSocialBatch: (
+    siteId: string,
+    batchId: string,
+    selections: Array<{
+      variantId: string;
+      includeHero?: boolean;
+      includeTextCardLight?: boolean;
+      includeTextCardDark?: boolean;
+    }>
+  ) =>
+    request<{ drafts: SocialPostDraft[] }>(`/sites/${siteId}/social/batches/${batchId}/accept`, {
+      method: 'POST',
+      body: JSON.stringify({ selections }),
+    }),
+  listSocialDrafts: (siteId: string, filters?: { sourcePostId?: string; platform?: string; status?: string }) => {
+    const q = new URLSearchParams();
+    if (filters?.sourcePostId) q.set('sourcePostId', filters.sourcePostId);
+    if (filters?.platform) q.set('platform', filters.platform);
+    if (filters?.status) q.set('status', filters.status);
+    const qs = q.toString();
+    return request<SocialPostDraft[]>(`/sites/${siteId}/social/drafts${qs ? `?${qs}` : ''}`);
+  },
+  getSocialDraft: (siteId: string, draftId: string) =>
+    request<{ draft: SocialPostDraft; blogUrl?: string }>(`/sites/${siteId}/social/drafts/${draftId}`),
+  updateSocialDraft: (siteId: string, draftId: string, body: Partial<SocialPostDraft>) =>
+    request<SocialPostDraft>(`/sites/${siteId}/social/drafts/${draftId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
+  markSocialDraftPublished: (siteId: string, draftId: string) =>
+    request<SocialPostDraft>(`/sites/${siteId}/social/drafts/${draftId}/publish`, { method: 'POST' }),
+  regenerateSocialCards: (siteId: string, draftId: string) =>
+    request<SocialPostDraft>(`/sites/${siteId}/social/drafts/${draftId}/regenerate-cards`, { method: 'POST' }),
+  humanizeSocialDraft: (siteId: string, draftId: string, opts?: HumanizeRequestOptions) =>
+    request<HumanizeResult>(`/sites/${siteId}/social/drafts/${draftId}/humanize`, {
+      method: 'POST',
+      body: JSON.stringify(opts ?? {}),
+    }),
+  uploadMedia: async (siteId: string, file: File) => {
+    const token = getToken();
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`/api/sites/${siteId}/media/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(body.error ?? 'Upload failed');
+    }
+    return res.json() as Promise<{ id: string; publicPath: string; filename: string }>;
+  },
 };

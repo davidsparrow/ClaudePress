@@ -2,6 +2,8 @@ node_modules/
 dist/
 data/
 .env
+.env.local
+.env.*.local
 ref/MongoDB_connection.txt
 *.log
 .DS_Store
